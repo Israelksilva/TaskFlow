@@ -28,4 +28,4 @@ npm run dev
 
 ---
 
-Feito por Israel Alcantara — Front-end Developer.
+Feito por Israel Alcantara.
