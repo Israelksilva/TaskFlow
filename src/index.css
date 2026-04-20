@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* TaskFlow Design System — todos os tokens HSL */
+
+@layer base {
+  :root {
+    --background: 220 30% 97%;
+    --foreground: 224 40% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 224 40% 14%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 40% 14%;
+
+    --primary: 235 75% 58%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 250 85% 70%;
+
+    --secondary: 220 25% 94%;
+    --secondary-foreground: 224 40% 18%;
+
+    --muted: 220 20% 95%;
+    --muted-foreground: 222 12% 45%;
+
+    --accent: 190 90% 50%;
+    --accent-foreground: 224 40% 12%;
+
+    --destructive: 0 80% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 152 65% 42%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 95% 55%;
+    --warning-foreground: 30 50% 12%;
+
+    --border: 220 20% 89%;
+    --input: 220 20% 89%;
+    --ring: 235 75% 58%;
+
+    --radius: 0.85rem;
+
+    --col-todo: 220 90% 96%;
+    --col-doing: 38 100% 95%;
+    --col-done: 152 60% 94%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(235 80% 60%), hsl(265 85% 65%));
+    --gradient-hero: linear-gradient(135deg, hsl(235 80% 60%) 0%, hsl(220 90% 55%) 50%, hsl(190 90% 55%) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(220 30% 99%), hsl(220 30% 96%));
+
+    --shadow-card: 0 1px 2px hsl(224 40% 14% / 0.04), 0 4px 12px hsl(224 40% 14% / 0.06);
+    --shadow-elevated: 0 10px 30px -10px hsl(235 75% 58% / 0.35);
+    --shadow-soft: 0 2px 8px hsl(224 40% 14% / 0.06);
+
+    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 224 40% 8%;
+    --foreground: 210 40% 98%;
+    --card: 224 35% 12%;
+    --card-foreground: 210 40% 98%;
+    --popover: 224 35% 12%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 235 80% 65%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 250 85% 72%;
+    --secondary: 224 30% 18%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 224 30% 16%;
+    --muted-foreground: 220 15% 65%;
+    --accent: 190 90% 55%;
+    --accent-foreground: 224 40% 12%;
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 60% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 95% 60%;
+    --warning-foreground: 30 50% 12%;
+    --border: 224 30% 20%;
+    --input: 224 30% 20%;
+    --ring: 235 80% 65%;
+    --col-todo: 224 35% 14%;
+    --col-doing: 38 30% 16%;
+    --col-done: 152 30% 14%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  .bg-gradient-primary { background: var(--gradient-primary); }
+  .bg-gradient-hero { background: var(--gradient-hero); }
+  .bg-gradient-surface { background: var(--gradient-surface); }
+  .shadow-card { box-shadow: var(--shadow-card); }
+  .shadow-elevated { box-shadow: var(--shadow-elevated); }
+  .shadow-soft { box-shadow: var(--shadow-soft); }
+  .transition-smooth { transition: var(--transition-smooth); }
+  .scrollbar-thin::-webkit-scrollbar { height: 10px; width: 10px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 999px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.5); }
+}
