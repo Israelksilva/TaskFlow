@@ -48,7 +48,7 @@ export const TaskCard = ({ task, onEdit, onDelete, isOverlay }: TaskCardProps) =
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group relative rounded-xl border border-border bg-card p-3.5 shadow-card transition-smooth",
+        "group relative rounded-xl border border-border bg-card p-3.5 pb-12 shadow-card transition-smooth",
         "hover:shadow-elevated hover:-translate-y-0.5 hover:border-primary/30",
         isDragging && "opacity-40",
         isOverlay && "shadow-elevated ring-2 ring-primary rotate-2 cursor-grabbing"
@@ -93,7 +93,7 @@ export const TaskCard = ({ task, onEdit, onDelete, isOverlay }: TaskCardProps) =
         </div>
       </div>
 
-      <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-smooth group-hover:opacity-100">
+      <div className="absolute right-2 bottom-2 flex gap-1 opacity-0 transition-smooth group-hover:opacity-100">
         <Button
           variant="ghost"
           size="icon"
@@ -103,6 +103,7 @@ export const TaskCard = ({ task, onEdit, onDelete, isOverlay }: TaskCardProps) =
         >
           <Pencil className="h-3.5 w-3.5" />
         </Button>
+
         <Button
           variant="ghost"
           size="icon"
