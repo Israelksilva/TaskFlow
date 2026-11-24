@@ -5,22 +5,30 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  { ignores: ["**/dist", "**/node_modules", "**/coverage", "apps/api/prisma/migrations"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
-    languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
+    languageOptions: { ecmaVersion: 2022 },
+    rules: {
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
     },
-    plugins: {
-      "react-hooks": reactHooks,
-      "react-refresh": reactRefresh,
-    },
+  },
+  {
+    files: ["apps/web/**/*.{ts,tsx}"],
+    languageOptions: { globals: globals.browser },
+    plugins: { "react-hooks": reactHooks, "react-refresh": reactRefresh },
     rules: {
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
-      "@typescript-eslint/no-unused-vars": "off",
     },
+  },
+  {
+    files: ["apps/web/src/components/ui/**/*.tsx"],
+    rules: { "react-refresh/only-export-components": "off" },
+  },
+  {
+    files: ["apps/api/**/*.ts", "packages/**/*.ts"],
+    languageOptions: { globals: globals.node },
   },
 );

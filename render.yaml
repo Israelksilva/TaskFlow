@@ -1,0 +1,25 @@
+# Blueprint do Render para a API (publicação em etapa futura).
+# Render → New → Blueprint → selecione este repositório.
+services:
+  - type: web
+    name: andamo-api
+    runtime: node
+    rootDir: .
+    plan: free
+    buildCommand: npm ci && npm run build -w @andamo/api
+    # Aplica migrações pendentes e inicia o servidor (o Render define PORT).
+    startCommand: npm run db:migrate:prod -w @andamo/api && npm run start -w @andamo/api
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false # cole a connection string do Neon no painel
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: CORS_ORIGIN
+        sync: false # ex.: https://seu-usuario.github.io
+      - key: LOG_LEVEL
+        value: info

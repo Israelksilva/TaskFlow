@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Andamo Design System — tokens HSL (claro/escuro) */
+
+@layer base {
+  :root {
+    --background: 240 33% 98%;
+    --foreground: 222 30% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 30% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 30% 14%;
+
+    --primary: 247 82% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 271 84% 61%;
+    --coral: 14 100% 66%;
+
+    --secondary: 220 16% 93%;
+    --secondary-foreground: 222 30% 18%;
+
+    --muted: 220 16% 94%;
+    --muted-foreground: 220 10% 40%;
+
+    /* Realce neutro para hover de botões e itens de menu */
+    --accent: 247 60% 96%;
+    --accent-foreground: 222 30% 14%;
+
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 60% 34%;
+    --success-foreground: 0 0% 100%;
+    --warning: 35 92% 42%;
+    --warning-foreground: 30 60% 10%;
+
+    --border: 240 16% 90%;
+    --input: 240 14% 85%;
+    --ring: 247 82% 60%;
+
+    --radius: 0.75rem;
+
+    --col-todo: 220 14% 95%;
+    --col-doing: 220 14% 95%;
+    --col-done: 220 14% 95%;
+
+    --status-todo: 220 10% 46%;
+    --status-doing: 247 82% 60%;
+    --status-done: 152 60% 34%;
+  }
+
+  .dark {
+    --background: 240 24% 7%;
+    --foreground: 220 20% 94%;
+    --card: 240 20% 11%;
+    --card-foreground: 220 20% 94%;
+    --popover: 240 20% 11%;
+    --popover-foreground: 220 20% 94%;
+    --primary: 248 96% 72%;
+    --primary-foreground: 240 30% 8%;
+    --primary-glow: 271 84% 70%;
+    --coral: 14 100% 70%;
+    --secondary: 224 18% 18%;
+    --secondary-foreground: 220 20% 94%;
+    --muted: 224 18% 16%;
+    --muted-foreground: 220 12% 66%;
+    --accent: 247 30% 20%;
+    --accent-foreground: 220 20% 94%;
+    --destructive: 0 70% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 50% 52%;
+    --success-foreground: 224 30% 10%;
+    --warning: 38 92% 60%;
+    --warning-foreground: 30 60% 10%;
+    --border: 224 16% 22%;
+    --input: 224 16% 26%;
+    --ring: 248 96% 72%;
+    --col-todo: 224 22% 10%;
+    --col-doing: 224 22% 10%;
+    --col-done: 224 22% 10%;
+    --status-todo: 220 12% 62%;
+    --status-doing: 248 96% 72%;
+    --status-done: 152 50% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01";
+    overflow-x: hidden;
+  }
+
+  /* Foco sempre visível na navegação por teclado */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  kbd {
+    @apply inline-flex h-5 min-w-5 items-center justify-center rounded border border-border bg-muted px-1 font-sans text-[11px] font-medium text-muted-foreground;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  .font-display {
+    letter-spacing: -0.02em;
+  }
+
+  /* Brilho suave da marca no topo das páginas */
+  .bg-brand-glow {
+    background-image: radial-gradient(60rem 18rem at 50% -6rem, hsl(var(--primary) / 0.14), transparent 70%);
+  }
+
+  .text-gradient {
+    @apply bg-brand bg-clip-text text-transparent;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+}
