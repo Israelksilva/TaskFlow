@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Andamo — gerenciador de tarefas Kanban full stack (React + Node.js + Prisma)",
+  "description": "Andamo — gerenciador de tarefas Kanban full stack (React + Node.js + PostgreSQL)",
   "author": "Israel Alcantara",
   "license": "MIT",
   "workspaces": [
@@ -21,15 +21,17 @@
     "test": "npm run test --workspaces --if-present",
     "lint": "eslint .",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "test:e2e": "playwright test",
+    "audit": "npm audit --audit-level=high",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:migrate": "npm run db:migrate -w @andamo/api",
     "db:seed": "npm run db:seed -w @andamo/api",
-    "db:studio": "npm run db:studio -w @andamo/api",
     "setup": "npm install && npm run db:migrate && npm run db:seed"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
+    "@playwright/test": "^1.65.1",
     "concurrently": "^9.2.0",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -37,7 +39,8 @@
     "globals": "^15.15.0",
     "prettier": "^3.6.2",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.38.0"
+    "typescript-eslint": "^8.38.0",
+    "vitest": "^5.1.2"
   },
   "allowScripts": {
     "@swc/core@1.16.22": true,

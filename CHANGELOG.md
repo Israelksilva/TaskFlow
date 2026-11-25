@@ -6,7 +6,34 @@ Todas as mudanças relevantes do Andamo. Formato baseado em
 
 ## [Não publicado]
 
-### Adicionado
+### Fase 1 — Fundação
+
+#### Adicionado
+
+- Rotas versionadas em `/v1` (as rotas sem prefixo continuam como aliases).
+- `GET /health/live` e `GET /health/ready` (503 se o banco não responder); `/health` mantido.
+- Cabeçalho `X-Request-Id` (gerado ou reaproveitado) e `requestId` em todos os logs.
+- Rate limit global por IP (`RATE_LIMIT_PER_MINUTE`, padrão 300/min), além do de login/cadastro.
+- Especificação OpenAPI 3.1 em `/v1/openapi.json`, gerada dos mesmos schemas Zod que validam a
+  API, e página de referência em `/v1/docs`.
+- Testes E2E com Playwright (cadastro, login, CRUD, mover e arrastar com persistência, busca,
+  tema, celular) e job de E2E na CI.
+- `npm audit --audit-level=high` na CI.
+
+#### Corrigido
+
+- B-01: criações/reordenações simultâneas num quadro vazio podiam gerar posições repetidas.
+  Agora a transação trava a linha do usuário. Teste de concorrência incluído.
+- B-02: removidas a menção a Prisma e o script `db:studio` inexistente.
+
+#### Segurança
+
+- S-01: Zod 3 → 4. S-02: React Router 6 → 7.
+- Vite 5 → 8 e Vitest 3 → 5 (alertas alto/crítico das ferramentas de desenvolvimento).
+
+### Fase 0 — Planejamento
+
+#### Adicionado
 
 - Documentação de planejamento da evolução para SaaS: `REQUISITOS.md`, `ROADMAP.md`,
   `ARCHITECTURE.md`, `SECURITY.md` (com auditoria inicial), `CLAUDE.md` e este changelog.

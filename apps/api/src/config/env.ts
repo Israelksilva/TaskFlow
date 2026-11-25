@@ -5,7 +5,7 @@ const envSchema = z
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
     PORT: z.coerce.number().int().positive().default(3333),
     DATABASE_URL: z
-      .string({ required_error: "DATABASE_URL é obrigatória (connection string do Neon)" })
+      .string({ error: "DATABASE_URL é obrigatória (connection string do Neon)" })
       .min(1, "DATABASE_URL é obrigatória (connection string do Neon)")
       .refine(
         (url) => /^(postgres(ql)?|pglite):\/\//.test(url),
@@ -22,6 +22,7 @@ const envSchema = z
           .map((origin) => origin.trim())
           .filter(Boolean),
       ),
+    RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(300),
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
       .default("info"),
@@ -29,14 +30,14 @@ const envSchema = z
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === "production" && env.JWT_SECRET.startsWith("troque-este-segredo")) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["JWT_SECRET"],
         message: "Defina um JWT_SECRET real em produção",
       });
     }
     if (env.NODE_ENV === "production" && env.DATABASE_URL.startsWith("pglite://")) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["DATABASE_URL"],
         message: "Em produção use o PostgreSQL do Neon (postgresql://...)",
       });
@@ -47,7 +48,7 @@ const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
   console.error("❌ Variáveis de ambiente inválidas:");
-  for (const [key, errors] of Object.entries(parsed.error.flatten().fieldErrors)) {
+  for (const [key, errors] of Object.entries(z.flattenError(parsed.error).fieldErrors)) {
     console.error(`   ${key}: ${errors?.join(", ")}`);
   }
   console.error("   Copie apps/api/.env.example para apps/api/.env e ajuste os valores.");

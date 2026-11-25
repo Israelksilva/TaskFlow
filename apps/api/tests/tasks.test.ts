@@ -204,3 +204,16 @@ describe("autorização", () => {
     await api().delete(`/tarefas/${a.id}`).set(auth(intruder.token)).expect(404);
   });
 });
+
+describe("concorrência (B-01)", () => {
+  it("criações simultâneas num quadro vazio recebem posições distintas e sequenciais", async () => {
+    const { token } = await createUser();
+    await Promise.all(
+      Array.from({ length: 8 }, (_, i) =>
+        api().post("/tarefas").set(auth(token)).send({ title: `T${i}` }).expect(201),
+      ),
+    );
+    const positions = (await listTasks(token)).map((t) => t.position).sort((x, y) => x - y);
+    expect(positions).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+  });
+});

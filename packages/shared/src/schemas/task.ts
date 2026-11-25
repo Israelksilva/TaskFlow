@@ -4,11 +4,11 @@ import { LIMITS, TASK_PRIORITIES, TASK_STATUSES } from "../constants";
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export const taskStatusSchema = z.enum(TASK_STATUSES, {
-  errorMap: () => ({ message: "Status inválido" }),
+  error: "Status inválido",
 });
 
 export const taskPrioritySchema = z.enum(TASK_PRIORITIES, {
-  errorMap: () => ({ message: "Prioridade inválida" }),
+  error: "Prioridade inválida",
 });
 
 /** Data no formato YYYY-MM-DD (sem fuso horário), validada como data de calendário real. */
@@ -22,7 +22,7 @@ export const dueDateSchema = z
   }, "Data inválida");
 
 const titleSchema = z
-  .string({ required_error: "Informe o título" })
+  .string({ error: "Informe o título" })
   .trim()
   .min(1, "Informe o título")
   .max(LIMITS.taskTitle, `O título deve ter no máximo ${LIMITS.taskTitle} caracteres`);
@@ -52,7 +52,7 @@ export const createTaskSchema = z.object({
 });
 
 const positionSchema = z
-  .number({ invalid_type_error: "Posição inválida" })
+  .number({ error: "Posição inválida" })
   .int("Posição inválida")
   .min(0, "Posição inválida");
 
@@ -61,15 +61,19 @@ const positionSchema = z
  * `status` e/ou `position` reposicionam a tarefa no quadro (arrastar e soltar).
  */
 export const updateTaskSchema = z
-  .object({
-    title: titleSchema.optional(),
-    description: descriptionSchema,
-    priority: taskPrioritySchema.optional(),
-    status: taskStatusSchema.optional(),
-    position: positionSchema.optional(),
-    dueDate: optionalDueDate,
-  })
-  .strict("Campo não permitido")
+  .strictObject(
+    {
+      title: titleSchema.optional(),
+      description: descriptionSchema,
+      priority: taskPrioritySchema.optional(),
+      status: taskStatusSchema.optional(),
+      position: positionSchema.optional(),
+      dueDate: optionalDueDate,
+    },
+    {
+      error: (issue) => (issue.code === "unrecognized_keys" ? "Campo não permitido" : undefined),
+    },
+  )
   .refine(
     (data) => Object.values(data).some((v) => v !== undefined),
     "Informe ao menos um campo para atualizar",

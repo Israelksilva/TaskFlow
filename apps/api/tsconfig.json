@@ -15,5 +15,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "tests", "prisma/seed.ts", "*.config.ts"]
+  "include": ["src", "tests", "*.config.ts"]
 }

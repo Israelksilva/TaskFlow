@@ -17,7 +17,7 @@ Entrega dos [requisitos](REQUISITOS.md) em fases incrementais, sobre a [arquitet
 | Fase | Tema                                                                   | Requisitos                        | Status |
 | ---- | ---------------------------------------------------------------------- | --------------------------------- | ------ |
 | 0    | Análise e planejamento                                                 | §1                                | ⏸      |
-| 1    | Fundação: correções, testes E2E, API v1                                | §1, §26, §27                      | ⬜     |
+| 1    | Fundação: correções, testes E2E, API v1                                | §1, §26, §27                      | ⏸      |
 | 2    | Design system, AppShell e redesign das telas atuais                    | §2, §6                            | ⬜     |
 | 3    | Landing page comercial, SEO e páginas legais                           | §3                                | ⬜     |
 | 4    | Autenticação completa e segurança de contas                            | §4, §22 (segurança)               | ⬜     |
@@ -49,24 +49,28 @@ conforme cada recurso chega.
 
 ---
 
-## Fase 1 — Fundação
+## Fase 1 — Fundação ⏸
 
 **Objetivo:** base corrigida e protegida por testes, sem mudança visível para o usuário.
 
-- [ ] P0 E2E Playwright das funcionalidades atuais: cadastro, login, criar/editar/excluir, arrastar
+- [x] P0 E2E Playwright das funcionalidades atuais: cadastro, login, criar/editar/excluir, arrastar
       entre colunas e recarregar mantendo a ordem, busca e filtros, tema, celular; no CI
-- [ ] P0 S-01: Zod 3 → 4 (shared, API, web)
-- [ ] P0 S-02: React Router 6 → 7
-- [ ] P0 B-01: travar o usuário (não só as tarefas) ao criar/reordenar; teste de concorrência
-- [ ] P0 Prefixo `/v1` com aliases das rotas atuais
-- [ ] P1 `/health/live` e `/health/ready`; `requestId` nos logs
-- [ ] P1 Rate limit global (S-06, parte 1)
-- [ ] P1 `npm audit` no CI (bloqueia alta/crítica)
-- [ ] P1 Base do OpenAPI (gerado dos schemas atuais) em `/v1/docs`
-- [ ] P2 B-02: limpar menção a Prisma e o script `db:studio`
+- [x] P0 S-01: Zod 3 → 4 (shared, API, web)
+- [x] P0 S-02: React Router 6 → 7
+- [x] P0 B-01: travar o usuário (não só as tarefas) ao criar/reordenar; teste de concorrência
+- [x] P0 Prefixo `/v1` com aliases das rotas atuais
+- [x] P1 `/health/live` e `/health/ready`; `requestId` nos logs
+- [x] P1 Rate limit global (S-06, parte 1)
+- [x] P1 `npm audit` no CI (bloqueia alta/crítica)
+- [x] P1 Base do OpenAPI (gerado dos schemas atuais) em `/v1/docs`
+- [x] P2 B-02: limpar menção a Prisma e o script `db:studio`
 
 **Aceite:** os 58 testes atuais e os novos E2E passam; `npm audit --omit=dev` sem alta/crítica;
 o front atual funciona sem nenhuma alteração.
+
+**Resultado:** 64 testes unitários/integração (17 shared · 36 API · 11 web) + 8 cenários E2E
+(desktop e celular). `npm audit`: 0 vulnerabilidades em produção; restam 3 baixas/moderadas só em
+ferramentas de desenvolvimento (ver SECURITY.md). Front sem alteração de comportamento.
 
 ---
 
