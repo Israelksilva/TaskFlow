@@ -40,6 +40,8 @@ export default defineConfig({
         JWT_SECRET: "e2e-somente-para-testes-locais-0123456789abcdef",
         CORS_ORIGIN: `http://localhost:${WEB_PORT}`,
         RATE_LIMIT_PER_MINUTE: "100000",
+        CONTACT_LIMIT_PER_HOUR: "100000",
+        AUTH_LIMIT_PER_15MIN: "100000",
         LOG_LEVEL: "warn",
       },
     },

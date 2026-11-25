@@ -20,6 +20,21 @@ for (const theme of ["light", "dark"] as const) {
   test.describe(`tema ${theme}`, () => {
     test.use({ colorScheme: theme });
 
+    test("landing, privacidade e termos", async ({ page }) => {
+      await page.goto("/#/");
+      await expect(page.getByRole("heading", { level: 1 })).toContainText("Organize seu trabalho");
+      // Rola até o fim para disparar as animações de entrada de todas as seções.
+      for (let i = 0; i < 20; i += 1) await page.mouse.wheel(0, 600);
+      await page.getByRole("heading", { name: "Seu trabalho, em andamento." }).scrollIntoViewIfNeeded();
+      await expectNoViolations(page, "landing");
+      await page.goto("/#/privacidade");
+      await expect(page.getByRole("heading", { level: 1, name: "Política de Privacidade" })).toBeVisible();
+      await expectNoViolations(page, "privacidade");
+      await page.goto("/#/termos");
+      await expect(page.getByRole("heading", { level: 1, name: "Termos de Uso" })).toBeVisible();
+      await expectNoViolations(page, "termos");
+    });
+
     test("login e cadastro", async ({ page }) => {
       await page.goto("/#/entrar");
       await expect(page.getByRole("heading", { name: "Entrar" })).toBeVisible();
@@ -53,7 +68,7 @@ for (const theme of ["light", "dark"] as const) {
 
     test("design system", async ({ page }) => {
       await signUp(page);
-      await page.goto("/#/design-system");
+      await page.goto("/#/app/design-system");
       for (const tab of ["Fundamentos", "Componentes", "Feedback"]) {
         await page.getByRole("tab", { name: tab }).click();
         await expectNoViolations(page, `design system / ${tab}`);

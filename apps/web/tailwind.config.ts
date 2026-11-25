@@ -15,14 +15,14 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
-        display: ['"Plus Jakarta Sans"', "Inter", "system-ui", "sans-serif"],
+        sans: ["\"Inter Variable\"", "Inter", "system-ui", "-apple-system", "sans-serif"],
+        display: ['"Plus Jakarta Sans"', '"Inter Variable"', "system-ui", "sans-serif"],
       },
       backgroundImage: {
         brand: "linear-gradient(135deg, #6D5DFC 0%, #A646F0 100%)",
       },
       colors: {
-        coral: "hsl(var(--coral))",
+        coral: { DEFAULT: "hsl(var(--coral))", strong: "hsl(var(--coral-strong))" },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

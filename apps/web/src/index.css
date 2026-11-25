@@ -23,6 +23,8 @@
     --primary-foreground: 0 0% 100%;
     --primary-glow: 271 84% 61%;
     --coral: 14 100% 66%;
+    /* Coral para texto: contraste ≥ 3:1 em títulos grandes */
+    --coral-strong: 14 82% 46%;
 
     --secondary: 220 16% 93%;
     --secondary-foreground: 222 30% 18%;
@@ -87,6 +89,7 @@
     --primary-foreground: 240 30% 8%;
     --primary-glow: 271 84% 70%;
     --coral: 14 100% 70%;
+    --coral-strong: 14 100% 70%;
     --secondary: 224 18% 18%;
     --secondary-foreground: 220 20% 94%;
     --muted: 224 18% 16%;
