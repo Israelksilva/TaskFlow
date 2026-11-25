@@ -18,6 +18,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/features/auth/use-auth";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
+import { RunningTimer } from "@/features/time/components/RunningTimer";
 import { SaveIndicator } from "./SaveIndicator";
 
 export interface Crumb {
@@ -93,6 +94,7 @@ export function AppHeader({
             <TooltipContent>Sem conexão em tempo real. As alterações de outras pessoas aparecerão quando reconectar.</TooltipContent>
           </Tooltip>
         )}
+        <RunningTimer />
         <div className="hidden xl:block">
           <SaveIndicator />
         </div>

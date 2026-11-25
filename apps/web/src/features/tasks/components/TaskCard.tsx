@@ -1,8 +1,8 @@
-import { memo, useRef } from "react";
+import { memo, useContext, useRef } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ArrowDown, ArrowRight, ArrowUp, GripVertical, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { STATUS_LABELS, TASK_STATUSES, type Task, type TaskStatus } from "@andamo/shared";
+import { resolveColumnId, STATUS_LABELS, type Task } from "@andamo/shared";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,13 +15,13 @@ import {
 import { cn } from "@/lib/utils";
 import { plainText } from "@/lib/markdown";
 import { DueDateBadge, PriorityBadge } from "./TaskBadges";
-import { TaskCardMeta } from "./TaskCardMeta";
+import { BoardMetaContext, TaskCardMeta } from "./TaskCardMeta";
 import { STATUS_META } from "./task-meta";
 
 export interface TaskCardActions {
   onEdit: (task: Task, returnFocus: HTMLElement | null) => void;
   onDelete: (task: Task, returnFocus: HTMLElement | null) => void;
-  onMove: (task: Task, status: TaskStatus, position: number) => void;
+  onMove: (task: Task, columnId: string, position: number) => void;
 }
 
 interface TaskCardProps extends TaskCardActions {
@@ -43,6 +43,8 @@ export const TaskCard = memo(function TaskCard({
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
     useSortable({ id: task.id, data: { type: "task", task }, disabled: dragDisabled });
 
+  const columns = useContext(BoardMetaContext)?.columns ?? [];
+  const currentColumn = resolveColumnId(task, columns);
   const isFirst = task.position === 0;
   const isLast = task.position >= columnSize - 1;
   const titleId = `task-${task.id}-title`;
@@ -128,20 +130,20 @@ export const TaskCard = memo(function TaskCard({
             <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
               Mover para
             </DropdownMenuLabel>
-            {TASK_STATUSES.filter((s) => s !== task.status).map((status) => {
-              const { icon: Icon, className } = STATUS_META[status];
+            {columns.filter((c) => c.id !== currentColumn).map((column) => {
+              const { icon: Icon, className } = STATUS_META[column.category];
               return (
-                <DropdownMenuItem key={status} onSelect={() => onMove(task, status, Number.MAX_SAFE_INTEGER)}>
+                <DropdownMenuItem key={column.id} onSelect={() => onMove(task, column.id, Number.MAX_SAFE_INTEGER)}>
                   <Icon className={cn("mr-2 h-4 w-4", className)} aria-hidden />
-                  {STATUS_LABELS[status]}
+                  <span className="truncate">{column.name}</span>
                   <ArrowRight className="ml-auto h-3.5 w-3.5 opacity-50" aria-hidden />
                 </DropdownMenuItem>
               );
             })}
-            <DropdownMenuItem disabled={isFirst} onSelect={() => onMove(task, task.status, task.position - 1)}>
+            <DropdownMenuItem disabled={isFirst || !currentColumn} onSelect={() => currentColumn && onMove(task, currentColumn, task.position - 1)}>
               <ArrowUp className="mr-2 h-4 w-4" aria-hidden /> Mover para cima
             </DropdownMenuItem>
-            <DropdownMenuItem disabled={isLast} onSelect={() => onMove(task, task.status, task.position + 1)}>
+            <DropdownMenuItem disabled={isLast || !currentColumn} onSelect={() => currentColumn && onMove(task, currentColumn, task.position + 1)}>
               <ArrowDown className="mr-2 h-4 w-4" aria-hidden /> Mover para baixo
             </DropdownMenuItem>
             <DropdownMenuSeparator />

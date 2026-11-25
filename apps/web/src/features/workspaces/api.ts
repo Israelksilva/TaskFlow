@@ -1,5 +1,8 @@
 import type {
   Activity,
+  BoardColumn,
+  CreateColumnInput,
+  UpdateColumnInput,
   CreateProjectInput,
   DashboardData,
   DashboardQuery,
@@ -77,4 +80,15 @@ export const workspacesApi = {
   archiveProject: (id: string, projectId: string, archived: boolean) =>
     apiRequest<{ project: Project }>(`${ws(id)}/projetos/${projectId}/arquivar`, { method: "POST", body: { archived } }).then((r) => r.project),
   deleteProject: (id: string, projectId: string) => apiRequest<void>(`${ws(id)}/projetos/${projectId}`, { method: "DELETE" }),
+
+  columns: (id: string, projectId: string) =>
+    apiRequest<{ columns: BoardColumn[] }>(`${ws(id)}/projetos/${projectId}/colunas`).then((r) => r.columns),
+  createColumn: (id: string, projectId: string, input: CreateColumnInput) =>
+    apiRequest<{ column: BoardColumn }>(`${ws(id)}/projetos/${projectId}/colunas`, { method: "POST", body: input }).then((r) => r.column),
+  updateColumn: (id: string, projectId: string, columnId: string, input: UpdateColumnInput) =>
+    apiRequest<{ column: BoardColumn }>(`${ws(id)}/projetos/${projectId}/colunas/${columnId}`, { method: "PATCH", body: input }).then((r) => r.column),
+  reorderColumns: (id: string, projectId: string, ids: string[]) =>
+    apiRequest<{ columns: BoardColumn[] }>(`${ws(id)}/projetos/${projectId}/colunas/ordem`, { method: "PUT", body: { ids } }).then((r) => r.columns),
+  deleteColumn: (id: string, projectId: string, columnId: string, moveToColumnId?: string) =>
+    apiRequest<void>(`${ws(id)}/projetos/${projectId}/colunas/${columnId}`, { method: "DELETE", body: { moveToColumnId } }),
 };

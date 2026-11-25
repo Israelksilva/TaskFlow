@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 import { CheckSquare, ListTree, MessageSquare, Repeat } from "lucide-react";
-import type { Label, Member, Task } from "@andamo/shared";
+import type { BoardColumn, Label, Member, Task } from "@andamo/shared";
 import { AvatarStack } from "@/components/feedback/UserAvatar";
 import { LabelChip } from "./Pickers";
 
@@ -8,6 +8,8 @@ import { LabelChip } from "./Pickers";
 export interface BoardMeta {
   members: Map<string, Member>;
   labels: Map<string, Label>;
+  /** Colunas do quadro atual (menu "Mover para"). */
+  columns: BoardColumn[];
 }
 export const BoardMetaContext = createContext<BoardMeta | null>(null);
 

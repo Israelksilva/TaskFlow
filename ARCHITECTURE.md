@@ -76,6 +76,12 @@ public/              sw.js, manifest, offline.html, ícones
 - **Tokens no `localStorage`** (não cookies): front e API estão em domínios diferentes (github.io × onrender.com);
   cookies de terceiros são bloqueados por vários navegadores. Mitigação: access token curto, rotação com detecção
   de reuso, sessões revogáveis, CSP-friendly Markdown (XSS) e limpeza no logout. CSRF não se aplica (sem cookies).
-- **Status fixo (todo/doing/done)**: colunas personalizáveis exigirão `project_columns` com `category` mapeando para
-  esses três estados, preservando métricas e o domínio `moveTask`.
+- **Colunas personalizáveis com categoria**: `project_columns.category ∈ {todo, doing, done}` e
+  `tasks.status` = categoria da coluna. Assim dashboard, lembretes, notificações, recorrência e dependências
+  continuam usando o status, enquanto o quadro usa `column_id` + `position` (`moveToColumn` em
+  `packages/shared/src/domain/columns.ts`). No PATCH, `columnId` tem precedência; só `status` leva à coluna atual
+  (se já for da categoria) ou à primeira coluna da categoria — o que mantém as rotas legadas compatíveis.
+  Limite WIP é aviso visual (decisão: não travar o fluxo da equipe).
+- **Controle de tempo**: `time_entries` com índice único parcial `(user_id) WHERE ended_at IS NULL` — o próprio
+  banco impede dois cronômetros simultâneos por pessoa. Pausar = encerrar o trecho; retomar = novo trecho.
 - **Hub de tempo real em memória**: suficiente para uma instância; trocar `publish*` por LISTEN/NOTIFY ao escalar.

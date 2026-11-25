@@ -13,6 +13,7 @@ export const wsKeys = {
   labels: (id: string) => ["workspaces", id, "labels"] as const,
   projects: (id: string, view = "active") => ["workspaces", id, "projects", view] as const,
   project: (id: string, projectId: string) => ["workspaces", id, "project", projectId] as const,
+  columns: (id: string, projectId: string) => ["workspaces", id, "columns", projectId] as const,
   dashboard: (id: string) => ["workspaces", id, "dashboard"] as const,
   activity: (id: string) => ["workspaces", id, "activity"] as const,
 };
@@ -48,6 +49,14 @@ export function useProjects(workspaceId: string, view: "active" | "archived" | "
 
 export function useProject(workspaceId: string, projectId: string) {
   return useQuery({ queryKey: wsKeys.project(workspaceId, projectId), queryFn: () => workspacesApi.project(workspaceId, projectId) });
+}
+
+export function useColumns(workspaceId: string, projectId: string) {
+  return useQuery({
+    queryKey: wsKeys.columns(workspaceId, projectId),
+    queryFn: () => workspacesApi.columns(workspaceId, projectId),
+    staleTime: 60_000,
+  });
 }
 
 /** Mutação com toast de erro padrão e invalidação das chaves informadas. */

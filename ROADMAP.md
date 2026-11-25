@@ -61,14 +61,16 @@ CRUD, duplicação, templates (com cópia de tarefas/checklist/etiquetas), arqui
 delete), cor, status, prioridade, datas, objetivo, responsável, equipe, progresso, histórico.
 PENDENTE: seletor de ícone na UI (campo existe), documentos por projeto (R15).
 
-### R8 Kanban — EM DESENVOLVIMENTO
-CONCLUÍDO: DnD fluido (mouse/toque/teclado), ordem persistida, filtros (busca, prioridade, atrasadas,
-responsável, etiqueta), criação rápida, atualização otimista com rollback, tempo real, seleção múltipla e ações
-em massa (lista/tabela), visualizações Kanban, Lista (agrupável por status/prioridade/responsável/etiqueta),
-Tabela (ordenável), Timeline/Gantt, Calendário.
-**PENDENTE:** colunas personalizáveis e limites WIP (exige migrar `status` fixo para colunas por projeto —
-decisão de modelo de dados registrada em ARCHITECTURE.md); agrupamento em raias no próprio Kanban; seleção
-múltipla no Kanban.
+### R8 Kanban — CONCLUÍDO (parcial)
+CONCLUÍDO: **colunas personalizáveis** (criar, renomear, cor, categoria A Fazer/Em andamento/Concluído,
+reordenar, excluir movendo as tarefas — nada é apagado), **limite WIP** por coluna (aviso visual; não bloqueia),
+templates copiam as colunas, DnD fluido (mouse/toque/teclado) entre N colunas com rolagem horizontal e abas no
+celular, ordem persistida, filtros (busca, prioridade, atrasadas, responsável, etiqueta), criação rápida na
+coluna, atualização otimista com rollback, tempo real, seleção múltipla e ações em massa (lista/tabela),
+visualizações Kanban, Lista (agrupável), Tabela (ordenável), Timeline/Gantt, Calendário.
+Verificado no navegador em 25/11/2026 (criar coluna, mover coluna, mover tarefa pelo menu, WIP excedido).
+**PENDENTE:** arrastar colunas (hoje reordena pelo menu ←/→), raias por responsável no próprio Kanban, seleção
+múltipla dentro do Kanban.
 
 ### R9 Tarefas — EM DESENVOLVIMENTO
 CONCLUÍDO: título, descrição rica (Markdown seguro com barra de formatação e pré-visualização), múltiplos
@@ -108,7 +110,13 @@ Limitação documentada: hub em memória = uma instância (para escalar, LISTEN/
 CONCLUÍDO: mês, semana, dia, agenda, prazos, filtro por projeto, criar tarefa no dia, arrastar para remarcar,
 exportação ICS. **PENDENTE:** eventos e reuniões (nova tabela). **BLOQUEADO:** Google Calendar (OAuth).
 
-### R14 Controle de tempo — PENDENTE
+### R14 Controle de tempo — CONCLUÍDO
+Cronômetro por tarefa (iniciar, pausar/retomar = novos trechos, parar pelo header), **um cronômetro por pessoa
+garantido no banco** (índice único parcial) com opção de trocar de tarefa, registro manual, edição/exclusão
+(autor ou gestor+), tempo apontado na tarefa, estimado × realizado (tarefa e relatório), horas por dia, por
+projeto e por pessoa, filtros de período/projeto/pessoa, exportação CSV (compatível com Excel), atualização
+entre dispositivos (WebSocket). Disponível no plano Free (decisão: `plans.ts`, ajustável).
+Verificado no navegador em 25/11/2026. PENDENTE: exportação em PDF/Excel nativo (junto com R16).
 ### R15 Documentos e arquivos — PENDENTE (requer storage de objetos: S3/R2/Supabase — decisão e credenciais)
 ### R16 Relatórios e exportação PDF/CSV/Excel — PENDENTE (dados já disponíveis no dashboard)
 ### R17 Automações — PENDENTE (recorrência já cria a próxima ocorrência; motor de regras a fazer)
@@ -153,7 +161,7 @@ Code splitting por rota, shell lazy, vendor chunks (entrada ~80 kB), error bound
 antigo, índices. PENDENTE: Lighthouse, virtualização de listas longas.
 
 ### R29 Testes — EM DESENVOLVIMENTO
-96 testes: 63 API (auth, sessões, força bruta, 2FA, LGPD, isolamento, IDOR, RBAC, limites de plano, lixeira,
+113 testes (74 API, 21 shared, 18 web). Base anterior — 63 API (auth, sessões, força bruta, 2FA, LGPD, isolamento, IDOR, RBAC, limites de plano, lixeira,
 recorrência, conflito, dependências, dashboard, notificações, push/e-mail, lembretes, varredura de atrasos,
 migração), 17 shared, 16 web (componentes, XSS do Markdown, força da senha). Verificação manual no navegador.
 **PENDENTE:** E2E Playwright, testes de acessibilidade automatizados, responsividade automatizada.
@@ -164,10 +172,10 @@ indisponível nesta máquina; o CI constrói a imagem), CI com lint, typecheck, 
 e build Docker. PENDENTE: deploy (aguarda autorização), Sentry, ambiente de homologação.
 
 ## Próximos passos sugeridos (próxima sessão)
-1. Revisar e autorizar: `git push` da branch + deploy (a migração 002 roda no Neon no start do Render — **fazer
-   backup/branch do Neon antes**).
+1. Revisar e autorizar: `git push` da branch + deploy (as migrações 002 e 003 rodam no Neon no start do Render —
+   **fazer backup/branch do Neon antes**).
 2. Configurar credenciais: Resend (e-mail), VAPID (push), Google OAuth.
-3. Colunas personalizáveis + WIP (R8).
-4. Controle de tempo (R14) e relatórios com exportação (R16).
+3. Relatórios com exportação PDF/CSV/Excel (R16) — reaproveitar dashboard e resumo de tempo.
+4. Automações (R17).
 5. Escolher provedor de pagamentos (modo teste) e storage de arquivos.
 6. E2E com Playwright.

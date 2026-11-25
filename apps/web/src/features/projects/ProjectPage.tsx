@@ -21,6 +21,7 @@ import {
   filterTasks,
   hasActiveFilters,
   PROJECT_STATUS_LABELS,
+  type BoardColumn,
   type Task,
   type TaskFilters,
   type TaskStatus,
@@ -51,11 +52,12 @@ import { TaskToolbar } from "@/features/tasks/components/TaskToolbar";
 import { TaskListView, TaskTableView, TaskTimelineView } from "@/features/tasks/components/TaskViews";
 import { BoardScopeContext, taskKeys, useDeleteTask, useMoveTask, useTasks, type BoardScope } from "@/features/tasks/hooks";
 import { workspacesApi } from "@/features/workspaces/api";
-import { useCurrentWorkspace, useLabels, useMembers, useProject, useWsMutation } from "@/features/workspaces/hooks";
+import { useColumns, useCurrentWorkspace, useLabels, useMembers, useProject, useWsMutation, wsKeys } from "@/features/workspaces/hooks";
 import { getErrorMessage } from "@/lib/api-client";
 import { focusTaskCard, getNewTaskButton } from "@/lib/focus";
 import { isTypingTarget } from "@/lib/hooks";
 import { pluralize } from "@/lib/format";
+import { ColumnFormDialog, DeleteColumnDialog } from "./components/ColumnDialogs";
 import { ProjectFormDialog } from "./components/ProjectFormDialog";
 
 type View = "kanban" | "lista" | "tabela" | "timeline";
@@ -69,10 +71,11 @@ const VIEWS: Array<{ id: View; label: string; icon: typeof List }> = [
 interface FormState {
   open: boolean;
   status: TaskStatus;
+  columnId?: string;
   returnFocus: HTMLElement | null;
 }
 
-function Board({ scope }: { scope: BoardScope }) {
+function Board({ scope, canManageColumns }: { scope: BoardScope; canManageColumns: boolean }) {
   const ws = useCurrentWorkspace();
   const qc = useQueryClient();
   const [params, setParams] = useSearchParams();
@@ -95,7 +98,35 @@ function Board({ scope }: { scope: BoardScope }) {
   const filtersActive = hasActiveFilters(filters);
   const visible = useMemo(() => (filtersActive ? filterTasks(tasks, filters) : tasks), [tasks, filters, filtersActive]);
   const stats = useMemo(() => computeBoardStats(tasks), [tasks]);
-  const meta = useMemo(() => ({ members: new Map(members.map((m) => [m.id, m])), labels: new Map(labels.map((l) => [l.id, l])) }), [members, labels]);
+  const columnsQuery = useColumns(ws.id, scope.projectId);
+  const columns = useMemo(() => columnsQuery.data ?? [], [columnsQuery.data]);
+  const [columnForm, setColumnForm] = useState<{ open: boolean; column: BoardColumn | null }>({ open: false, column: null });
+  const [columnToDelete, setColumnToDelete] = useState<BoardColumn | null>(null);
+  const reorderColumns = useWsMutation((ids: string[]) => workspacesApi.reorderColumns(ws.id, scope.projectId, ids), {
+    invalidate: [wsKeys.columns(ws.id, scope.projectId)],
+  });
+  const meta = useMemo(
+    () => ({ members: new Map(members.map((m) => [m.id, m])), labels: new Map(labels.map((l) => [l.id, l])), columns }),
+    [members, labels, columns],
+  );
+  const columnActions = useMemo(
+    () =>
+      canManageColumns
+        ? {
+            onEdit: (column: BoardColumn) => setColumnForm({ open: true, column }),
+            onDelete: (column: BoardColumn) => setColumnToDelete(column),
+            onShift: (column: BoardColumn, direction: -1 | 1) => {
+              const ids = columns.map((c) => c.id);
+              const i = ids.indexOf(column.id);
+              const j = i + direction;
+              if (j < 0 || j >= ids.length) return;
+              [ids[i], ids[j]] = [ids[j], ids[i]];
+              reorderColumns.mutate(ids);
+            },
+          }
+        : undefined,
+    [canManageColumns, columns, reorderColumns],
+  );
 
   const openTask = useCallback(
     (task: Task) =>
@@ -105,22 +136,26 @@ function Board({ scope }: { scope: BoardScope }) {
       }),
     [setParams],
   );
-  const openCreate = useCallback((status: TaskStatus = "todo", returnFocus: HTMLElement | null = null) => {
-    if (canCreate) setForm({ open: true, status, returnFocus });
-  }, [canCreate]);
+  /** Nova tarefa: na coluna clicada (ou na primeira coluna do quadro). */
+  const openCreate = useCallback(
+    (column: BoardColumn | undefined, returnFocus: HTMLElement | null = null) => {
+      if (canCreate) setForm({ open: true, status: column?.category ?? "todo", columnId: column?.id, returnFocus });
+    },
+    [canCreate],
+  );
   const handleMove = useCallback(
-    (task: Task, status: TaskStatus, position: number) => {
-      move.mutate({ task, status, position });
+    (task: Task, columnId: string, position: number) => {
+      move.mutate({ task, columnId, position, columns });
       focusTaskCard(task.id);
     },
-    [move],
+    [move, columns],
   );
   const handleDragCommit = useCallback(
-    ({ task, status, position, items, rollback }: DragCommit) => {
+    ({ task, columnId, position, items, rollback }: DragCommit) => {
       qc.setQueryData(taskKeys.board(scope), items);
-      move.mutate({ task, status, position, rollback });
+      move.mutate({ task, columnId, position, columns, rollback });
     },
-    [qc, move, scope],
+    [qc, move, scope, columns],
   );
 
   // Atalhos do quadro: N = nova tarefa na coluna "A Fazer", / = buscar.
@@ -130,7 +165,7 @@ function Board({ scope }: { scope: BoardScope }) {
       if (document.querySelector("[role=dialog], [role=alertdialog], [role=menu]")) return;
       if (e.key === "n" || e.key === "N") {
         e.preventDefault();
-        openCreate("todo", getNewTaskButton());
+        openCreate(columns[0], getNewTaskButton());
       } else if (e.key === "/") {
         e.preventDefault();
         searchRef.current?.focus();
@@ -138,7 +173,7 @@ function Board({ scope }: { scope: BoardScope }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [openCreate]);
+  }, [openCreate, columns]);
 
   const setView = (v: string) =>
     setParams((p) => {
@@ -147,25 +182,32 @@ function Board({ scope }: { scope: BoardScope }) {
     });
 
   let content;
-  if (tasksQuery.isPending) content = <BoardSkeleton />;
-  else if (tasksQuery.isError && !tasksQuery.data) {
-    content = <BoardError message={getErrorMessage(tasksQuery.error)} onRetry={() => void tasksQuery.refetch()} retrying={tasksQuery.isFetching} />;
-  } else if (tasks.length === 0) {
-    content = canCreate ? <EmptyBoard onCreate={(el) => openCreate("todo", el)} /> : <p className="text-sm text-muted-foreground">Este projeto ainda não tem tarefas.</p>;
+  if (tasksQuery.isPending || columnsQuery.isPending) content = <BoardSkeleton />;
+  else if ((tasksQuery.isError && !tasksQuery.data) || columnsQuery.isError) {
+    const error = tasksQuery.error ?? columnsQuery.error;
+    const retry = () => void Promise.all([tasksQuery.refetch(), columnsQuery.refetch()]);
+    content = <BoardError message={getErrorMessage(error)} onRetry={retry} retrying={tasksQuery.isFetching || columnsQuery.isFetching} />;
+  } else if (tasks.length === 0 && view !== "kanban") {
+    content = canCreate ? <EmptyBoard onCreate={(el) => openCreate(columns[0], el)} /> : <p className="text-sm text-muted-foreground">Este projeto ainda não tem tarefas.</p>;
   } else if (filtersActive && visible.length === 0) {
     content = <NoResults onClear={() => setFilters({})} />;
   } else if (view === "kanban") {
+    // O quadro aparece mesmo vazio: as colunas já orientam por onde começar.
     content = (
       <>
         <TaskBoard
           tasks={tasks}
+          columns={columns}
           filters={filters}
           filtersActive={filtersActive}
+          canCreate={canCreate}
           onAdd={openCreate}
           onEdit={openTask}
           onDelete={(task, returnFocus) => setToDelete({ task, returnFocus })}
           onMove={handleMove}
           onDragCommit={handleDragCommit}
+          columnActions={columnActions}
+          onAddColumn={canManageColumns ? () => setColumnForm({ open: true, column: null }) : undefined}
         />
         {filtersActive && <p className="mt-3 text-xs text-muted-foreground">Com filtros ativos, use o menu ⋯ do cartão para mover tarefas. Limpe os filtros para arrastar.</p>}
       </>
@@ -193,7 +235,7 @@ function Board({ scope }: { scope: BoardScope }) {
             <span><span className="font-medium text-foreground">{stats.completionRate}%</span> concluídas</span>
             {stats.overdue > 0 && <span className="font-medium text-destructive">{pluralize(stats.overdue, "atrasada", "atrasadas")}</span>}
             {canCreate && (
-              <Button data-new-task-button size="sm" className="bg-brand text-white shadow-glow hover:brightness-110" onClick={(e) => openCreate("todo", e.currentTarget)}>
+              <Button data-new-task-button size="sm" className="bg-brand text-white shadow-glow hover:brightness-110" onClick={(e) => openCreate(columns[0], e.currentTarget)}>
                 <Plus /> Nova tarefa <kbd className="ml-1 border-white/30 bg-white/15 text-white">N</kbd>
               </Button>
             )}
@@ -207,7 +249,29 @@ function Board({ scope }: { scope: BoardScope }) {
         {content}
       </div>
 
-      <TaskFormDialog open={form.open} onOpenChange={(open) => setForm((f) => ({ ...f, open }))} task={null} defaultStatus={form.status} returnFocus={form.returnFocus} />
+      <TaskFormDialog
+        open={form.open}
+        onOpenChange={(open) => setForm((f) => ({ ...f, open }))}
+        task={null}
+        defaultStatus={form.status}
+        defaultColumnId={form.columnId}
+        returnFocus={form.returnFocus}
+      />
+      <ColumnFormDialog
+        open={columnForm.open}
+        onOpenChange={(open) => setColumnForm((f) => ({ ...f, open }))}
+        workspaceId={ws.id}
+        projectId={scope.projectId}
+        column={columnForm.column}
+      />
+      <DeleteColumnDialog
+        column={columnToDelete}
+        columns={columns}
+        taskCount={columnToDelete ? tasks.filter((t) => t.columnId === columnToDelete.id).length : 0}
+        workspaceId={ws.id}
+        projectId={scope.projectId}
+        onClose={() => setColumnToDelete(null)}
+      />
       <DeleteTaskDialog
         task={toDelete?.task ?? null}
         returnFocus={toDelete?.returnFocus}
@@ -297,7 +361,7 @@ export default function ProjectPage() {
             )}
           </div>
         )}
-        <Board scope={scope} />
+        <Board scope={scope} canManageColumns={Boolean(canManage)} />
       </div>
       <ProjectFormDialog open={editing} onOpenChange={setEditing} workspace={ws} project={p} />
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>

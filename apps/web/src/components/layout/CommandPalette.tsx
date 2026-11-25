@@ -187,6 +187,7 @@ export function CommandPalette({
                       { to: `${base}/minhas-tarefas`, label: "Minhas tarefas", icon: ListTodo },
                       { to: `${base}/projetos`, label: "Projetos", icon: FolderKanban },
                       { to: `${base}/calendario`, label: "Calendário", icon: CalendarDays },
+                      { to: `${base}/tempo`, label: "Controle de tempo", icon: Clock },
                       { to: `${base}/equipe`, label: "Equipe", icon: Users },
                       { to: "/app/configuracoes", label: "Configurações", icon: Settings },
                     ].map((item) => (

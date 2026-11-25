@@ -59,6 +59,8 @@ interface TaskFormDialogProps {
   /** Presente = edição; ausente = criação. */
   task?: Task | null;
   defaultStatus?: TaskStatus;
+  /** Coluna do quadro onde a tarefa deve entrar (criação pelo "+" da coluna). */
+  defaultColumnId?: string;
   /** Elemento que abriu o modal: recebe o foco de volta ao fechar. */
   returnFocus?: HTMLElement | null;
 }
@@ -91,6 +93,7 @@ export function TaskFormDialog({
   onOpenChange,
   task,
   defaultStatus = "todo",
+  defaultColumnId,
   returnFocus,
 }: TaskFormDialogProps) {
   const isEdit = Boolean(task);
@@ -129,6 +132,8 @@ export function TaskFormDialog({
       } else {
         await create.mutateAsync({
           ...values,
+          // Criada pelo "+" de uma coluna: entra nela, salvo se o status escolhido for de outra categoria.
+          columnId: defaultColumnId && values.status === defaultStatus ? defaultColumnId : undefined,
           description: values.description.trim() || null,
           dueDate: values.dueDate || null,
         });

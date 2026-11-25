@@ -15,6 +15,7 @@ import {
   Plus,
   Settings,
   SlidersHorizontal,
+  Timer,
   Trash2,
   Users,
   type LucideIcon,
@@ -162,6 +163,7 @@ export function Sidebar({
     { to: `${base}/minhas-tarefas`, label: "Minhas tarefas", icon: ListTodo },
     { to: `${base}/projetos`, label: "Projetos", icon: FolderKanban, end: true },
     { to: `${base}/calendario`, label: "Calendário", icon: CalendarDays },
+    { to: `${base}/tempo`, label: "Controle de tempo", icon: Timer },
     { to: `${base}/equipe`, label: "Equipe", icon: Users },
   ];
   const footer: NavItem[] = [

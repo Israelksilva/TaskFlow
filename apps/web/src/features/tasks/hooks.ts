@@ -2,13 +2,12 @@ import { createContext, useContext } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  moveTask,
+  moveToColumn,
   removeTask,
   sortTasks,
-  STATUS_LABELS,
+  type BoardColumn,
   type CreateTaskInput,
   type Task,
-  type TaskStatus,
   type UpdateTaskInput,
 } from "@andamo/shared";
 import { getErrorMessage } from "@/lib/api-client";
@@ -82,8 +81,10 @@ export function useUpdateTask() {
 
 export interface MoveVariables {
   task: Task;
-  status: TaskStatus;
+  columnId: string;
   position: number;
+  /** Colunas do quadro (para calcular a posição otimista). */
+  columns: BoardColumn[];
   /** Estado do quadro antes do arraste (para desfazer em caso de erro). */
   rollback?: Task[];
 }
@@ -98,12 +99,12 @@ export function useMoveTask() {
   const key = taskKeys.board(scope);
   const mutation = useMutation({
     mutationKey: ["tasks", "move"],
-    mutationFn: ({ task, status, position }: MoveVariables) => tasksApi.update(scope.workspaceId, task.id, { status, position }),
-    onMutate: async ({ task, status, position, rollback }) => {
+    mutationFn: ({ task, columnId, position }: MoveVariables) => tasksApi.update(scope.workspaceId, task.id, { columnId, position }),
+    onMutate: async ({ task, columnId, position, columns, rollback }) => {
       // revert:false — não desfaz o estado já aplicado pelo arraste.
       await qc.cancelQueries({ queryKey: key }, { revert: false });
       const previous = rollback ?? qc.getQueryData<Task[]>(key);
-      qc.setQueryData<Task[]>(key, (old) => (old && old.some((t) => t.id === task.id) ? moveTask(old, task.id, status, position) : old));
+      qc.setQueryData<Task[]>(key, (old) => (old && old.some((t) => t.id === task.id) ? moveToColumn(old, task.id, columnId, position, columns) : old));
       return { previous };
     },
     onError: (error, variables, context) => {
@@ -113,8 +114,9 @@ export function useMoveTask() {
         action: { label: "Tentar novamente", onClick: () => mutation.mutate({ ...variables, rollback: undefined }) },
       });
     },
-    onSuccess: (_task, { task, status }) => {
-      if (task.status !== status) toast.success(`Movida para ${STATUS_LABELS[status]}`, { description: task.title });
+    onSuccess: (_task, { task, columnId, columns }) => {
+      const column = columns.find((c) => c.id === columnId);
+      if (column && task.columnId !== columnId) toast.success(`Movida para ${column.name}`, { description: task.title });
     },
     // Com vários movimentos em sequência, sincroniza só quando o último terminar.
     onSettled: () => {

@@ -109,6 +109,11 @@ export function useRealtime(enabled: boolean, onOpenNotification: (n: AppNotific
         case "workspaces.changed":
           void qc.invalidateQueries({ queryKey: wsKeys.all });
           break;
+        case "timer.changed":
+          // Cronômetro iniciado/parado em outro dispositivo.
+          void qc.invalidateQueries({ queryKey: ["timer"] });
+          void qc.invalidateQueries({ queryKey: ["time"] });
+          break;
         case "presence":
           if (msg.taskId) for (const l of presenceListeners) l(msg.taskId, msg.userIds ?? []);
           break;

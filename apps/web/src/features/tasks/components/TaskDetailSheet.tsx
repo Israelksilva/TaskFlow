@@ -56,6 +56,7 @@ import { formatDateTime, relativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { tasksApi } from "../api";
 import { taskKeys } from "../hooks";
+import { TaskTimeSection } from "@/features/time/components/TaskTimeSection";
 import { LabelPicker, MemberPicker } from "./Pickers";
 import { STATUS_META } from "./task-meta";
 import { TaskComments } from "./TaskComments";
@@ -498,6 +499,8 @@ function DetailBody({ task, workspace, close }: { task: TaskDetail; workspace: W
             )}
           </section>
         )}
+
+        <TaskTimeSection task={task} workspace={workspace} />
 
         <section aria-labelledby="dep-h" className="space-y-2">
           <h3 id="dep-h" className="text-sm font-semibold">
