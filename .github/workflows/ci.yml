@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -20,3 +24,26 @@ jobs:
       # Testes da API usam PostgreSQL embutido (PGlite): não precisam de banco externo.
       - run: npm test
       - run: npm run build
+      # Sobe o bundle de produção da API e confere o health check
+      # (pega erros de importação/ESM que os testes não exercitam).
+      - name: Smoke test do bundle da API
+        working-directory: apps/api
+        env:
+          NODE_ENV: development
+          PORT: 3399
+          DATABASE_URL: pglite://memory
+          JWT_SECRET: ci-smoke-secret-ci-smoke-secret-0123
+          WORKER_ENABLED: "false"
+          LOG_LEVEL: warn
+        run: |
+          node dist/server.js &
+          for i in $(seq 1 30); do curl -sf http://localhost:3399/health && exit 0; sleep 1; done
+          echo "API não respondeu ao health check" && exit 1
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build da imagem Docker da API
+        run: docker build -t andamo-api:ci .
