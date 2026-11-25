@@ -62,11 +62,13 @@ export const taskRepository = {
   },
 
   /**
-   * Bloqueia as tarefas do usuário até o fim da transação, serializando
-   * reordenações concorrentes (duas abas arrastando ao mesmo tempo).
+   * Serializa escritas do mesmo usuário até o fim da transação (duas abas
+   * criando ou arrastando ao mesmo tempo). Bloqueia a linha do usuário, e não
+   * as tarefas: com o quadro vazio não haveria linhas para bloquear e duas
+   * criações simultâneas receberiam a mesma posição (bug B-01).
    */
   async lockByUser(userId: string, db: Queryable): Promise<void> {
-    await db.query("SELECT id FROM tasks WHERE user_id = $1 FOR UPDATE", [userId]);
+    await db.query("SELECT 1 FROM users WHERE id = $1 FOR UPDATE", [userId]);
   },
 
   /** Busca a tarefa apenas se pertencer ao usuário. */

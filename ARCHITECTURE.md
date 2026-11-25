@@ -46,6 +46,20 @@ GitHub Pages em `/TaskFlow/` (por isso `HashRouter` e `base` no Vite). O plano f
 
 ---
 
+### 1.1 Mudanças da Fase 1
+
+- **Rotas:** `apps/api/src/app.ts` monta o mesmo roteador em `/v1` e na raiz (aliases). Novas
+  rotas entram só em `/v1`; os aliases saem quando o front migrar (Fase 2).
+- **Saúde:** `modules/health` — `/health/live` (processo), `/health/ready` (banco), `/health`
+  (legado do Render).
+- **Observabilidade:** `X-Request-Id` gerado ou reaproveitado (`[\w-]{8,64}`) e `requestId` em cada
+  linha de log do `pino-http`.
+- **Proteção:** `middlewares/rate-limit.ts` (global por IP, em memória) antes do parser de JSON.
+- **Contrato:** `docs/openapi.ts` gera OpenAPI 3.1 a partir dos schemas Zod compartilhados
+  (`z.toJSONSchema`), servido em `/v1/openapi.json` e `/v1/docs`.
+- **Concorrência:** escritas que calculam posição travam `users` (`SELECT … FOR UPDATE`).
+- **Testes:** `e2e/` com Playwright; `playwright.config.ts` sobe API (PGlite em memória) e front.
+
 ## 2. Princípios
 
 1. **Preservar o que funciona.** Migrações novas (nunca editar antigas), migração de dados testada,
