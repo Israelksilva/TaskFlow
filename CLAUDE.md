@@ -73,6 +73,11 @@ E2E (a partir da Fase 1) e `npm audit --omit=dev` sem vulnerabilidade alta ou cr
 - Mutações do quadro otimistas com rollback.
 - WCAG 2.2 AA: rótulos, foco visível, teclado, `aria-live`, contraste, `prefers-reduced-motion`.
 - Marca: violeta `#6D5DFC` → púrpura `#A646F0`, coral `#FF8A65`; Plus Jakarta Sans + Inter; ícones Lucide.
+- Tokens em `src/index.css` + `tailwind.config.ts`; todo token novo entra também em `/#/design-system`.
+- Gradiente (`bg-brand` / `variant="brand"`) só na ação principal da tela e na identidade.
+- Páginas logadas são rotas filhas de `AppShell`. Item novo na sidebar (`components/layout/nav.ts`)
+  só quando a página funciona; registre também a trilha em `breadcrumbsFor`.
+- Toda tela nova entra em `e2e/a11y.spec.ts` (axe, temas claro e escuro).
 
 ## Testes exigidos
 

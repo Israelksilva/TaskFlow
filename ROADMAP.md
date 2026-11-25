@@ -18,7 +18,7 @@ Entrega dos [requisitos](REQUISITOS.md) em fases incrementais, sobre a [arquitet
 | ---- | ---------------------------------------------------------------------- | --------------------------------- | ------ |
 | 0    | Análise e planejamento                                                 | §1                                | ⏸      |
 | 1    | Fundação: correções, testes E2E, API v1                                | §1, §26, §27                      | ⏸      |
-| 2    | Design system, AppShell e redesign das telas atuais                    | §2, §6                            | ⬜     |
+| 2    | Design system, AppShell e redesign das telas atuais                    | §2, §6                            | ⏸      |
 | 3    | Landing page comercial, SEO e páginas legais                           | §3                                | ⬜     |
 | 4    | Autenticação completa e segurança de contas                            | §4, §22 (segurança)               | ⬜     |
 | 5    | Multiempresa: workspaces, membros, equipes, RBAC, projetos, onboarding | §4 (onboarding), §7, §8, §12, §26 | ⬜     |
@@ -74,23 +74,28 @@ ferramentas de desenvolvimento (ver SECURITY.md). Front sem alteração de compo
 
 ---
 
-## Fase 2 — Design system, AppShell e redesign
+## Fase 2 — Design system, AppShell e redesign ⏸
 
 **Objetivo:** cara de produto premium com o que já existe.
 
-- [ ] P0 Tokens centralizados (cor, tipografia, espaçamento, raio, sombra, movimento); temas claro,
+- [x] P0 Tokens centralizados (cor, tipografia, espaçamento, raio, sombra, movimento); temas claro,
       escuro e automático
-- [ ] P0 Componentes: botão, campo, select, modal, dropdown, tooltip, toast, skeleton, empty state,
+- [x] P0 Componentes: botão, campo, select, modal, dropdown, tooltip, toast, skeleton, empty state,
       avatar, badge, tabs, breadcrumb, estados de carregando/sucesso/erro
-- [ ] P0 AppShell: sidebar recolhível e responsiva (só itens que já funcionam), header com avatar,
+- [x] P0 AppShell: sidebar recolhível e responsiva (só itens que já funcionam), header com avatar,
       menu de perfil, breadcrumbs, botão de criação rápida
-- [ ] P0 Login, cadastro e quadro redesenhados, mesmo comportamento
-- [ ] P1 Command palette (Ctrl/Cmd + K) para navegação e ações existentes
-- [ ] P1 Microinterações e animações com `prefers-reduced-motion`
-- [ ] P1 Página interna de referência do design system
-- [ ] P1 Auditoria WCAG 2.2 AA com axe em todas as telas
+- [x] P0 Login, cadastro e quadro redesenhados, mesmo comportamento
+- [x] P1 Command palette (Ctrl/Cmd + K) para navegação e ações existentes
+- [x] P1 Microinterações e animações com `prefers-reduced-motion`
+- [x] P1 Página interna de referência do design system
+- [x] P1 Auditoria WCAG 2.2 AA com axe em todas as telas
 
 **Aceite:** E2E da Fase 1 verdes; axe sem violações; desktop, tablet e celular revisados.
+
+**Resultado:** 19 cenários E2E (8 da Fase 1 + 5 do AppShell + 6 de acessibilidade), todos verdes;
+axe sem violações WCAG 2.2 A/AA nos temas claro e escuro. Sidebar com os itens que existem hoje
+(Minhas tarefas e Design system); os demais itens do §6 (busca global real, seletor de workspace,
+notificações) entram nas fases que criam essas áreas.
 
 ---
 

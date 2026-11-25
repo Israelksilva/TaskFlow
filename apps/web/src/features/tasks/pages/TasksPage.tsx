@@ -9,7 +9,7 @@ import {
   type TaskFilters,
   type TaskStatus,
 } from "@andamo/shared";
-import { AppHeader } from "@/components/layout/AppHeader";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/features/auth/use-auth";
 import { Button } from "@/components/ui/button";
 import { getErrorMessage } from "@/lib/api-client";
@@ -49,6 +49,8 @@ export default function TasksPage() {
   const [form, setForm] = useState<FormState>({ open: false, task: null, status: "todo", returnFocus: null });
   const [toDelete, setToDelete] = useState<{ task: Task; returnFocus: HTMLElement | null } | null>(null);
 
+  const [params, setParams] = useSearchParams();
+
   const tasks = useMemo(() => tasksQuery.data ?? [], [tasksQuery.data]);
   const filtersActive = hasActiveFilters(filters);
   const visibleCount = useMemo(
@@ -85,6 +87,20 @@ export default function TasksPage() {
     },
     [qc, move],
   );
+
+  // Ações vindas da paleta de comandos e da criação rápida (?nova, ?buscar, ?editar=<id>).
+  useEffect(() => {
+    if (!["nova", "buscar", "editar"].some((k) => params.has(k))) return;
+    const editId = params.get("editar");
+    if (editId && tasksQuery.isPending) return; // espera as tarefas para abrir a edição
+    if (params.has("nova")) openCreate("todo", getNewTaskButton());
+    else if (params.has("buscar")) requestAnimationFrame(() => searchRef.current?.focus());
+    else if (editId) {
+      const task = tasks.find((t) => t.id === editId);
+      if (task) openEdit(task, null);
+    }
+    setParams({}, { replace: true });
+  }, [params, setParams, tasks, tasksQuery.isPending, openCreate, openEdit]);
 
   // Atalhos: N = nova tarefa, / = buscar.
   useEffect(() => {
@@ -142,11 +158,8 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <AppHeader />
-
-      <main className="bg-brand-glow flex-1">
-       <div className="container pb-24 pt-8 md:pb-10">
+    <div className="bg-brand-glow min-h-full">
+       <div className="mx-auto w-full max-w-[1400px] px-4 pb-24 pt-6 sm:px-6 md:pb-10 lg:pt-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
             <p className="text-sm font-medium text-primary">{greeting()}{firstName ? `, ${firstName}` : ""} 👋</p>
@@ -183,9 +196,10 @@ export default function TasksPage() {
           </div>
           <Button
             data-new-task-button
+            variant="brand"
             size="lg"
             onClick={(e) => openCreate("todo", e.currentTarget)}
-            className="hidden bg-brand text-white shadow-lg shadow-primary/25 transition-[filter,transform] hover:-translate-y-px hover:brightness-110 sm:inline-flex"
+            className="hidden px-5 sm:inline-flex"
           >
             <Plus aria-hidden /> Nova tarefa
             <kbd className="ml-1 border-white/30 bg-white/15 text-white">N</kbd>
@@ -212,14 +226,14 @@ export default function TasksPage() {
           {content}
         </div>
        </div>
-      </main>
 
       {/* Celular: ação principal sempre ao alcance do polegar. */}
       <Button
         data-new-task-button
         size="lg"
         onClick={(e) => openCreate("todo", e.currentTarget)}
-        className="fixed bottom-5 right-4 z-20 h-12 rounded-full bg-brand px-5 text-white shadow-lg shadow-primary/30 sm:hidden"
+        variant="brand"
+        className="fixed bottom-5 right-4 z-20 h-12 rounded-full px-5 shadow-lg sm:hidden"
       >
         <Plus aria-hidden /> Nova tarefa
       </Button>

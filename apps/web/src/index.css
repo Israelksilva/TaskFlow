@@ -2,7 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Andamo Design System — tokens HSL (claro/escuro) */
+/*
+ * Andamo Design System — tokens centralizados.
+ * Cores em HSL (sem hsl()) para permitir opacidade no Tailwind: hsl(var(--primary) / 0.2).
+ * Referência viva em /#/design-system. Ao criar um token, registre-o também em
+ * tailwind.config.ts e na página de referência.
+ */
 
 @layer base {
   :root {
@@ -29,12 +34,12 @@
     --accent: 247 60% 96%;
     --accent-foreground: 222 30% 14%;
 
-    --destructive: 0 72% 48%;
+    --destructive: 0 74% 42%;
     --destructive-foreground: 0 0% 100%;
-    --success: 152 60% 34%;
+    --success: 152 65% 27%;
     --success-foreground: 0 0% 100%;
-    --warning: 35 92% 42%;
-    --warning-foreground: 30 60% 10%;
+    --warning: 30 95% 32%;
+    --warning-foreground: 0 0% 100%;
 
     --border: 240 16% 90%;
     --input: 240 14% 85%;
@@ -42,13 +47,33 @@
 
     --radius: 0.75rem;
 
+    /* Sidebar */
+    --sidebar: 240 30% 97%;
+    --sidebar-foreground: 222 22% 26%;
+    --sidebar-accent: 247 70% 94%;
+    --sidebar-accent-foreground: 247 60% 40%;
+
+    /* Elevação: sombras discretas, tingidas pela cor do texto */
+    --shadow-color: 222 30% 14%;
+    --shadow-xs: 0 1px 2px hsl(var(--shadow-color) / 0.05);
+    --shadow-sm: 0 1px 3px hsl(var(--shadow-color) / 0.08), 0 1px 2px hsl(var(--shadow-color) / 0.04);
+    --shadow-md: 0 4px 12px -2px hsl(var(--shadow-color) / 0.1), 0 2px 4px -2px hsl(var(--shadow-color) / 0.06);
+    --shadow-lg: 0 16px 32px -8px hsl(var(--shadow-color) / 0.16), 0 4px 8px -4px hsl(var(--shadow-color) / 0.08);
+
+    /* Movimento */
+    --duration-fast: 120ms;
+    --duration-normal: 200ms;
+    --duration-slow: 320ms;
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
     --col-todo: 220 14% 95%;
     --col-doing: 220 14% 95%;
     --col-done: 220 14% 95%;
 
     --status-todo: 220 10% 46%;
     --status-doing: 247 82% 60%;
-    --status-done: 152 60% 34%;
+    --status-done: 152 65% 27%;
   }
 
   .dark {
@@ -58,7 +83,7 @@
     --card-foreground: 220 20% 94%;
     --popover: 240 20% 11%;
     --popover-foreground: 220 20% 94%;
-    --primary: 248 96% 72%;
+    --primary: 248 96% 77%;
     --primary-foreground: 240 30% 8%;
     --primary-glow: 271 84% 70%;
     --coral: 14 100% 70%;
@@ -68,20 +93,25 @@
     --muted-foreground: 220 12% 66%;
     --accent: 247 30% 20%;
     --accent-foreground: 220 20% 94%;
-    --destructive: 0 70% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 85% 70%;
+    --destructive-foreground: 0 60% 10%;
     --success: 152 50% 52%;
     --success-foreground: 224 30% 10%;
     --warning: 38 92% 60%;
     --warning-foreground: 30 60% 10%;
     --border: 224 16% 22%;
     --input: 224 16% 26%;
-    --ring: 248 96% 72%;
+    --ring: 248 96% 77%;
+    --sidebar: 240 24% 9%;
+    --sidebar-foreground: 220 14% 78%;
+    --sidebar-accent: 247 30% 18%;
+    --sidebar-accent-foreground: 248 96% 82%;
+    --shadow-color: 240 40% 2%;
     --col-todo: 224 22% 10%;
     --col-doing: 224 22% 10%;
     --col-done: 224 22% 10%;
     --status-todo: 220 12% 62%;
-    --status-doing: 248 96% 72%;
+    --status-doing: 248 96% 77%;
     --status-done: 152 50% 52%;
   }
 }

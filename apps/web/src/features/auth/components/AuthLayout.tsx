@@ -11,24 +11,27 @@ const HIGHLIGHTS = [
 /** Ilustração decorativa: um mini quadro em andamento. */
 function BoardIllustration() {
   const columns = [
-    { title: "A Fazer", cards: [72, 48, 60] },
-    { title: "Em Progresso", cards: [64, 40], active: true },
-    { title: "Concluído", cards: [56, 70], done: true },
+    { title: "A Fazer", dot: "bg-white/40", cards: [72, 48, 60] },
+    { title: "Em Progresso", dot: "bg-primary-glow", cards: [64, 40], active: true },
+    { title: "Concluído", dot: "bg-emerald-400", cards: [56, 70], done: true },
   ];
   return (
-    <div aria-hidden className="grid grid-cols-3 gap-3 rounded-2xl bg-white/10 p-3 ring-1 ring-white/20 backdrop-blur">
+    <div aria-hidden className="grid grid-cols-3 gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3">
       {columns.map((col) => (
-        <div key={col.title} className="space-y-2 rounded-xl bg-white/10 p-2.5">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-white/80">{col.title}</p>
+        <div key={col.title} className="space-y-2 rounded-xl bg-white/[0.04] p-2.5">
+          <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-white/60">
+            <span className={`h-1.5 w-1.5 rounded-full ${col.dot}`} />
+            {col.title}
+          </p>
           {col.cards.map((w, i) => (
             <div
               key={i}
-              className={`space-y-1.5 rounded-lg bg-white p-2 shadow-sm ${col.active && i === 0 ? "rotate-[-3deg] ring-2 ring-[#FF8A65]" : ""}`}
+              className={`space-y-1.5 rounded-lg border border-white/10 bg-white/[0.07] p-2 ${col.active && i === 0 ? "-rotate-2 border-coral/70 bg-white/[0.12] shadow-lg shadow-black/30" : ""}`}
             >
-              <div className="h-1.5 rounded-full bg-slate-800/80" style={{ width: `${w}%` }} />
-              <div className="h-1.5 w-2/3 rounded-full bg-slate-300" />
+              <div className="h-1.5 rounded-full bg-white/70" style={{ width: `${w}%` }} />
+              <div className="h-1.5 w-2/3 rounded-full bg-white/25" />
               <div className="flex items-center gap-1 pt-0.5">
-                <span className={`h-2 w-6 rounded-full ${col.done ? "bg-emerald-400" : i % 2 ? "bg-amber-300" : "bg-rose-300"}`} />
+                <span className={`h-2 w-6 rounded-full ${col.done ? "bg-emerald-400/80" : i % 2 ? "bg-amber-300/80" : "bg-coral/80"}`} />
                 {col.done && <span className="ml-auto h-2.5 w-2.5 rounded-full bg-emerald-400" />}
               </div>
             </div>
@@ -53,12 +56,16 @@ export function AuthLayout({
   return (
     <div className="grid min-h-screen bg-background lg:grid-cols-[1.05fr_1fr]">
       {/* Painel da marca (desktop) */}
-      <aside className="relative hidden overflow-hidden bg-brand p-12 text-white lg:flex lg:flex-col lg:justify-between">
-        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-[#FF8A65]/30 blur-3xl" />
-        <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-20 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
+      <aside className="relative hidden overflow-hidden bg-[hsl(248_42%_12%)] p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        {/* Grade pontilhada sutil + um único brilho violeta: profundidade sem excesso de gradiente. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:radial-gradient(hsl(0_0%_100%/0.12)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:linear-gradient(to_bottom,black,transparent_85%)]"
+        />
+        <div aria-hidden className="pointer-events-none absolute -right-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-primary/30 blur-3xl" />
 
         <span className="relative flex items-center gap-2.5">
-          <span className="rounded-[14px] bg-white/15 p-1 ring-1 ring-white/25">
+          <span className="rounded-[14px] bg-white/10 p-1 ring-1 ring-white/15">
             <LogoMark className="h-9 w-9" />
           </span>
           <span className="font-display text-2xl font-extrabold">Andamo</span>
@@ -69,17 +76,17 @@ export function AuthLayout({
             <h2 className="font-display text-4xl font-extrabold leading-[1.1] xl:text-5xl">
               Seu trabalho,
               <br />
-              <span className="text-[#FFD2C2]">em andamento.</span>
+              <span className="text-coral">em andamento.</span>
             </h2>
-            <p className="text-lg text-white/80">
+            <p className="text-lg text-white/70">
               Um quadro leve e rápido para planejar, acompanhar e concluir o que importa.
             </p>
           </div>
           <BoardIllustration />
           <ul className="space-y-3">
             {HIGHLIGHTS.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-center gap-3 text-sm text-white/90">
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15">
+              <li key={text} className="flex items-center gap-3 text-sm text-white/80">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-coral ring-1 ring-white/10">
                   <Icon className="h-4 w-4" aria-hidden />
                 </span>
                 {text}
@@ -88,7 +95,7 @@ export function AuthLayout({
           </ul>
         </div>
 
-        <p className="relative text-xs text-white/60">© {new Date().getFullYear()} Andamo · por Israel Alcantara</p>
+        <p className="relative text-xs text-white/50">© {new Date().getFullYear()} Andamo · por Israel Alcantara</p>
       </aside>
 
       {/* Formulário */}
@@ -98,7 +105,7 @@ export function AuthLayout({
             <Logo markClassName="h-9 w-9" className="justify-center" />
           </div>
           <main>
-            <h1 className="font-display text-2xl font-bold">{title}</h1>
+            <h1 className="font-display text-3xl font-extrabold tracking-tight">{title}</h1>
             <p className="mt-1.5 text-sm text-muted-foreground">{description}</p>
             <div className="mt-8">{children}</div>
           </main>

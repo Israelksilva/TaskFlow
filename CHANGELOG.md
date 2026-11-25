@@ -6,6 +6,27 @@ Todas as mudanças relevantes do Andamo. Formato baseado em
 
 ## [Não publicado]
 
+### Fase 2 — Design system, AppShell e redesign
+
+#### Adicionado
+
+- AppShell: sidebar recolhível (lembra a escolha), gaveta no celular, breadcrumbs, botão de criação
+  rápida, link "Pular para o conteúdo".
+- Paleta de comandos (Ctrl/Cmd + K): nova tarefa, buscar no quadro, ir para páginas, abrir qualquer
+  tarefa para edição, trocar tema e sair.
+- Tokens de sombra, movimento e sidebar; componentes `Tabs`, `Breadcrumb`, `EmptyState`,
+  `StatusMessage`, `Sheet` e `Command`; variantes `brand` (botão) e `brand/coral/success/warning`
+  (badge).
+- Página interna de referência do design system (`/#/design-system`).
+- Testes E2E do AppShell e auditoria automática de acessibilidade (axe) nos temas claro e escuro.
+
+#### Alterado
+
+- Login e cadastro com painel da marca mais sóbrio (menos gradiente) e títulos maiores.
+- Estados vazios do quadro usam o componente `EmptyState`.
+- Modais com fundo translúcido mais leve; "Fechar" traduzido.
+- Contraste de sucesso, atenção e erro ajustado para WCAG AA nos dois temas.
+
 ### Fase 1 — Fundação
 
 #### Adicionado
