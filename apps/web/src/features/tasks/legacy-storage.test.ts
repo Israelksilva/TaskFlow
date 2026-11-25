@@ -13,7 +13,7 @@ describe("convertLegacyTasks", () => {
       { id: "1", title: " Estudar ", priority: "alta", columnId: "doing", dueDate: "2026-01-10", createdAt: "x" },
       { title: "Sem extras" },
       { title: "   " },
-      { title: "Data ruim", dueDate: "10/01/2026", priority: "urgente", columnId: "arquivo" },
+      { title: "Data ruim", dueDate: "10/01/2026", priority: "critica", columnId: "arquivo" },
       null,
     ]);
     expect(result).toEqual([

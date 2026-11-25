@@ -20,9 +20,25 @@ services:
         sync: false # cole a connection string do Neon no painel
       - key: JWT_SECRET
         generateValue: true
-      - key: JWT_EXPIRES_IN
-        value: 7d
+      # Access token curto; a sessão continua pelo refresh token rotativo.
+      - key: ACCESS_TOKEN_TTL
+        value: 15m
       - key: CORS_ORIGIN
         sync: false # ex.: https://seu-usuario.github.io
+      - key: APP_URL
+        sync: false # ex.: https://seu-usuario.github.io/TaskFlow (links de e-mail/push)
       - key: LOG_LEVEL
         value: info
+      # Integrações opcionais — ficam desligadas (sem fingir funcionar) até serem preenchidas.
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: CONTACT_EMAIL
+        sync: false

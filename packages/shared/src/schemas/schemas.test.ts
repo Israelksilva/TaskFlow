@@ -13,7 +13,18 @@ describe("registerSchema", () => {
 describe("createTaskSchema", () => {
   it("aplica valores padrão e normaliza vazios para null", () => {
     const result = createTaskSchema.parse({ title: "  Nova  ", description: "", dueDate: "" });
-    expect(result).toEqual({ title: "Nova", description: null, priority: "media", status: "todo", dueDate: null });
+    expect(result).toEqual({
+      title: "Nova",
+      description: null,
+      priority: "media",
+      status: "todo",
+      dueDate: null,
+      parentId: null,
+      startDate: null,
+      dueTime: null,
+      estimateMinutes: null,
+      recurrence: null,
+    });
   });
 
   it("rejeita datas inexistentes", () => {

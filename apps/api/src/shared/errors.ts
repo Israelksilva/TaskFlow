@@ -29,6 +29,12 @@ export class UnauthorizedError extends AppError {
   }
 }
 
+export class ForbiddenError extends AppError {
+  constructor(message = "Você não tem permissão para esta ação", code = "FORBIDDEN") {
+    super(403, code, message);
+  }
+}
+
 export class NotFoundError extends AppError {
   constructor(resource = "Recurso") {
     super(404, "NOT_FOUND", `${resource} não encontrado(a)`);
@@ -38,5 +44,18 @@ export class NotFoundError extends AppError {
 export class ConflictError extends AppError {
   constructor(message: string, code = "CONFLICT") {
     super(409, code, message);
+  }
+}
+
+/** Limite do plano atingido (ex.: número de projetos ou membros). */
+export class PlanLimitError extends AppError {
+  constructor(message: string) {
+    super(402, "PLAN_LIMIT", message);
+  }
+}
+
+export class TooManyRequestsError extends AppError {
+  constructor(message = "Muitas tentativas. Tente novamente mais tarde.") {
+    super(429, "TOO_MANY_REQUESTS", message);
   }
 }

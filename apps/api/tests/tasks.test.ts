@@ -51,7 +51,7 @@ describe("POST /tarefas", () => {
     const res = await api()
       .post("/tarefas")
       .set(auth(token))
-      .send({ title: "   ", priority: "urgente", dueDate: "2026-02-31" })
+      .send({ title: "   ", priority: "critica", dueDate: "2026-02-31" })
       .expect(422);
     expect(res.body.error.code).toBe("VALIDATION_ERROR");
     expect(Object.keys(res.body.error.details).sort()).toEqual(["dueDate", "priority", "title"]);
