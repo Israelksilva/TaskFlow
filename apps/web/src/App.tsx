@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
-import { HashRouter, Route, Routes } from "react-router-dom";
+import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LoadingScreen } from "@/components/feedback/LoadingScreen";
@@ -15,6 +15,8 @@ const LoginPage = lazy(() => import("@/features/auth/pages/LoginPage"));
 const RegisterPage = lazy(() => import("@/features/auth/pages/RegisterPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const DesignSystemPage = lazy(() => import("@/pages/DesignSystemPage"));
+const LandingPage = lazy(() => import("@/pages/public/LandingPage"));
+const LegalPage = lazy(() => import("@/pages/public/LegalPage"));
 
 export default function App() {
   return (
@@ -26,12 +28,20 @@ export default function App() {
             <AuthProvider>
               <Suspense fallback={<LoadingScreen />}>
                 <Routes>
+                  {/* Público */}
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/privacidade" element={<LegalPage doc="privacidade" />} />
+                  <Route path="/termos" element={<LegalPage doc="termos" />} />
+
+                  {/* App (logado) */}
                   <Route element={<RequireAuth />}>
                     <Route element={<AppShell />}>
-                      <Route path="/" element={<TasksPage />} />
-                      <Route path="/design-system" element={<DesignSystemPage />} />
+                      <Route path="/app" element={<TasksPage />} />
+                      <Route path="/app/design-system" element={<DesignSystemPage />} />
                     </Route>
                   </Route>
+                  {/* Endereço antigo da página de referência */}
+                  <Route path="/design-system" element={<Navigate to="/app/design-system" replace />} />
                   <Route element={<GuestOnly />}>
                     <Route path="/entrar" element={<LoginPage />} />
                     <Route path="/cadastro" element={<RegisterPage />} />

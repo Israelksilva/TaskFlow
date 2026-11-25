@@ -38,7 +38,11 @@ export function RequireAuth() {
 /** Páginas de login/cadastro: quem já está logado vai direto para o quadro. */
 export function GuestOnly() {
   const { status } = useAuth();
+  const location = useLocation();
   if (status === "loading") return <LoadingScreen label="Carregando…" />;
-  if (status === "authenticated") return <Navigate to="/" replace />;
+  if (status === "authenticated") {
+    const from = (location.state as { from?: string } | null)?.from;
+    return <Navigate to={from?.startsWith("/app") ? from : "/app"} replace />;
+  }
   return <Outlet />;
 }

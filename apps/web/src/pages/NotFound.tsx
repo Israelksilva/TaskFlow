@@ -8,7 +8,7 @@ export default function NotFound() {
       <h1 className="text-2xl font-semibold">Página não encontrada</h1>
       <p className="text-sm text-muted-foreground">O endereço acessado não existe.</p>
       <Link to="/" className={buttonVariants({ className: "mt-2" })}>
-        Voltar para minhas tarefas
+        Voltar para o início
       </Link>
     </main>
   );

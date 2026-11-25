@@ -20,17 +20,17 @@ export interface NavSection {
 export const NAV_SECTIONS: NavSection[] = [
   {
     label: "Workspace",
-    items: [{ label: "Minhas tarefas", to: "/", icon: KanbanSquare }],
+    items: [{ label: "Minhas tarefas", to: "/app", icon: KanbanSquare }],
   },
   {
     label: "Sistema",
-    items: [{ label: "Design system", to: "/design-system", icon: Palette }],
+    items: [{ label: "Design system", to: "/app/design-system", icon: Palette }],
   },
 ];
 
 /** Trilha de navegação por rota. */
 export function breadcrumbsFor(pathname: string) {
-  const root = { label: "Workspace", to: "/" };
-  if (pathname === "/design-system") return [{ label: "Sistema" }, { label: "Design system" }];
+  const root = { label: "Workspace", to: "/app" };
+  if (pathname === "/app/design-system") return [{ label: "Sistema" }, { label: "Design system" }];
   return [root, { label: "Minhas tarefas" }];
 }

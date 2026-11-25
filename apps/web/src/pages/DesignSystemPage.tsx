@@ -35,6 +35,7 @@ const COLORS = [
   { token: "primary", label: "Violeta (primária)" },
   { token: "primary-glow", label: "Violeta claro" },
   { token: "coral", label: "Coral (destaque)" },
+  { token: "coral-strong", label: "Coral para texto" },
   { token: "background", label: "Fundo" },
   { token: "card", label: "Superfície" },
   { token: "muted", label: "Suave" },
@@ -261,7 +262,7 @@ export default function DesignSystemPage() {
                   </Avatar>
                 ))}
               </div>
-              <Breadcrumb items={[{ label: "Workspace", to: "/" }, { label: "Projeto" }, { label: "Quadro" }]} />
+              <Breadcrumb items={[{ label: "Workspace", to: "/app" }, { label: "Projeto" }, { label: "Quadro" }]} />
             </div>
           </Section>
 
