@@ -52,6 +52,19 @@ function broadcastPresence(taskId: string, workspaces: Set<string>) {
   for (const ws of workspaces) publishToWorkspace(ws, message);
 }
 
+/** Presença só vale para tarefas de workspaces dos quais o usuário é membro (sem vazar entre tenants). */
+async function updatePresence(client: Client, taskId: unknown) {
+  const previous = client.viewing;
+  let next: string | null = null;
+  if (typeof taskId === "string" && /^[0-9a-f-]{36}$/i.test(taskId)) {
+    const { rows } = await db.query<{ workspace_id: string }>(`SELECT workspace_id FROM tasks WHERE id = $1`, [taskId]);
+    if (rows[0] && client.workspaces.has(rows[0].workspace_id)) next = taskId;
+  }
+  client.viewing = next;
+  if (previous && previous !== next) broadcastPresence(previous, client.workspaces);
+  if (next) broadcastPresence(next, client.workspaces);
+}
+
 /** Atualiza a lista de workspaces de um usuário conectado (ex.: aceitou um convite). */
 export async function refreshUserWorkspaces(userId: string) {
   const { rows } = await db.query<{ workspace_id: string }>(
@@ -107,12 +120,7 @@ export function attachRealtime(server: Server) {
             try {
               const msg = JSON.parse(String(raw)) as { type?: string; taskId?: unknown };
               if (msg.type === "ping") send(client, { type: "pong" });
-              if (msg.type === "presence") {
-                const previous = client.viewing;
-                client.viewing = typeof msg.taskId === "string" && msg.taskId.length <= 64 ? msg.taskId : null;
-                if (previous) broadcastPresence(previous, client.workspaces);
-                if (client.viewing) broadcastPresence(client.viewing, client.workspaces);
-              }
+              if (msg.type === "presence") void updatePresence(client, msg.taskId);
             } catch {
               /* mensagem inválida: ignorada */
             }

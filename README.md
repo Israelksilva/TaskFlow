@@ -7,7 +7,7 @@
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-6D5DFC?logo=typescript&logoColor=white" />
   <img alt="Node.js" src="https://img.shields.io/badge/Node.js-Express%205-A646F0?logo=nodedotjs&logoColor=white" />
   <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-Neon-A646F0?logo=postgresql&logoColor=white" />
-  <img alt="Testes" src="https://img.shields.io/badge/testes-58%20passando-FF8A65" />
+  <img alt="Testes" src="https://img.shields.io/badge/testes-96%20passando-FF8A65" />
 </p>
 
 # Andamo
@@ -38,61 +38,43 @@ Tipografia: **Plus Jakarta Sans** (títulos) e **Inter** (texto). Arquivos em [`
 
 ## Funcionalidades
 
-- Cadastro/login; cada usuário vê apenas as próprias tarefas
-- Quadro com colunas **A Fazer**, **Em Progresso** e **Concluído**
-- Criar, editar (PATCH parcial), excluir (com confirmação) e mover tarefas
-- Mover por **arrastar e soltar** (mouse, toque e teclado) ou pelo menu **⋯ → Mover para**
-- Ordem dos cartões persistida no banco (coluna + posição)
-- Busca sem acentos, filtro por prioridade e por atrasadas
-- Atualização otimista com **rollback** e "Tentar novamente" quando a API falha
-- Indicador "Salvando… / Tudo salvo", estados de carregando, vazio e sem resultados
-- Layout responsivo: no celular, uma coluna por vez em abas + botão flutuante "Nova tarefa"
-- Acessibilidade: rótulos, foco visível, retorno de foco ao fechar modais, anúncios em português
-- Atalhos: <kbd>N</kbd> nova tarefa · <kbd>/</kbd> buscar · <kbd>Ctrl</kbd>+<kbd>Enter</kbd> salvar
-- Importa tarefas antigas salvas no `localStorage` (versão anterior), sem apagar a cópia local
-- Tema claro/escuro
+**Plataforma SaaS de gestão de projetos, tarefas e equipes.** Estado detalhado de cada item no [ROADMAP](ROADMAP.md).
 
-## Estrutura
+- **Workspaces multi-tenant**: workspace pessoal automático + workspaces de equipe, convites por e-mail,
+  equipes, 6 papéis (proprietário → visualizador) validados no servidor, limites por plano (Free/Pro/Business)
+- **Projetos**: templates, duplicação, arquivo, cores, objetivos, datas e progresso
+- **Tarefas**: Kanban com arrastar e soltar, lista agrupável, tabela, timeline/Gantt e calendário; subtarefas,
+  checklist, dependências, recorrência, múltiplos responsáveis, etiquetas, lixeira, ações em massa
+- **Colaboração em tempo real** (WebSocket): comentários com @menções, respostas e reações, presença
+- **Notificações**: central com contador, push (Service Worker + VAPID), e-mail (Resend), lembretes de prazo
+  configuráveis em fila durável, horário silencioso e não perturbe
+- **Segurança**: refresh token rotativo, sessões revogáveis, 2FA (TOTP), bloqueio por força bruta, LGPD
+  (exportar/excluir conta) — ver [SECURITY.md](SECURITY.md)
+- **Dashboard** com dados reais, **busca global** (Ctrl+K), **landing page** comercial e **PWA** instalável
 
-```
-apps/
-  api/                 API REST (Express)
-    migrations/        SQL versionado (001_create_users_and_tasks.sql)
-    src/
-      config/env.ts    validação das variáveis de ambiente (Zod)
-      db/              conexão (pg / PGlite), migrador e seed
-      middlewares/     autenticação JWT e tratamento de erros
-      modules/
-        auth/          cadastro, login, /me
-        tasks/         rotas → controller → service → repository (SQL)
-        users/
-    tests/             testes de integração (Supertest + Postgres em memória)
-  web/                 SPA React
-    src/
-      features/auth/   login, cadastro, sessão
-      features/tasks/  quadro, cartões, formulário, hooks React Query
-      components/      layout, feedback e componentes de UI (shadcn)
-packages/
-  shared/              schemas Zod, tipos e regras de domínio usados pelos dois lados
-```
+## Documentação
 
-## API
+| Arquivo | Conteúdo |
+|---|---|
+| [REQUISITOS.md](REQUISITOS.md) | Escopo completo do produto |
+| [ROADMAP.md](ROADMAP.md) | Estado de cada funcionalidade e próximos passos |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Arquitetura, multi-tenant, fila, notificações, decisões |
+| [SECURITY.md](SECURITY.md) | Controles de segurança, LGPD, backup e rollback |
+| [CHANGELOG.md](CHANGELOG.md) | Histórico de versões |
+| [CLAUDE.md](CLAUDE.md) | Guia para sessões de desenvolvimento |
 
-Todas as rotas de tarefas exigem `Authorization: Bearer <token>`.
+API: especificação em `GET /v1/openapi.json`; saúde em `/health` e `/health/ready`.
 
-| Método | Rota | Descrição | Respostas |
-|---|---|---|---|
-| POST | `/auth/cadastro` | Cria conta | 201, 409, 422 |
-| POST | `/auth/login` | Autentica | 200, 401, 422 |
-| GET | `/auth/me` | Usuário atual | 200, 401 |
-| GET | `/tarefas` | Lista (`?search=&status=&priority=`) | 200 |
-| POST | `/tarefas` | Cria e devolve a tarefa com `id` | 201, 422 |
-| PATCH | `/tarefas/:id` | Atualiza **só os campos enviados**; `status`/`position` reordenam | 200, 404, 422 |
-| DELETE | `/tarefas/:id` | Exclui | 204, 404 |
-| POST | `/tarefas/importar` | Importação em lote (atômica) | 201, 422 |
-| GET | `/health` | Health check | 200 |
+## Integrações opcionais
 
-Erros seguem o formato `{ "error": { "code", "message", "details?" } }`.
+Ficam desligadas (sem fingir funcionamento) até você configurar as variáveis em `apps/api/.env` / Render:
+
+| Recurso | Variáveis |
+|---|---|
+| E-mail (verificação, senha, convites, lembretes, resumos) | `RESEND_API_KEY`, `EMAIL_FROM` |
+| Notificações push | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (gere com `npx web-push generate-vapid-keys`) |
+| Login com Google | `GOOGLE_CLIENT_ID` |
+| Formulário de contato por e-mail | `CONTACT_EMAIL` |
 
 ## Como rodar (Windows / PowerShell)
 
