@@ -60,6 +60,23 @@ GitHub Pages em `/TaskFlow/` (por isso `HashRouter` e `base` no Vite). O plano f
 - **Concorrência:** escritas que calculam posição travam `users` (`SELECT … FOR UPDATE`).
 - **Testes:** `e2e/` com Playwright; `playwright.config.ts` sobe API (PGlite em memória) e front.
 
+### 1.2 Mudanças da Fase 2
+
+- **Tokens:** `apps/web/src/index.css` concentra cor, sidebar, sombra (`--shadow-xs…lg`) e movimento
+  (`--duration-*`, `--ease-*`); `tailwind.config.ts` os expõe (`shadow-md`, `duration-fast`,
+  `ease-out`, `bg-sidebar`…). Contraste revisado para AA nos dois temas.
+- **AppShell:** `components/layout/AppShell.tsx` é rota de layout das páginas logadas — sidebar
+  recolhível (preferência em `localStorage`), gaveta no celular (`ui/sheet`), header com breadcrumbs,
+  busca/paleta, criação rápida, indicador de salvamento e menu de conta.
+- **Command palette:** `CommandPalette.tsx` (cmdk). Lê as tarefas do cache do React Query (sem
+  requisição) e aciona o quadro por query string (`?nova`, `?buscar`, `?editar=<id>`), o que também
+  permite criação rápida a partir de qualquer página.
+- **Componentes novos:** `tabs`, `breadcrumb`, `empty-state`, `status-message`, `sheet`, `command`;
+  variantes `brand` em `Button` e `brand/coral/success/warning` em `Badge`.
+- **Referência:** `/#/design-system` (página interna).
+- **Acessibilidade:** `e2e/a11y.spec.ts` roda axe (WCAG 2.2 A/AA) em login, cadastro, quadro, modal,
+  paleta e design system, nos temas claro e escuro.
+
 ## 2. Princípios
 
 1. **Preservar o que funciona.** Migrações novas (nunca editar antigas), migração de dados testada,

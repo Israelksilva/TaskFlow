@@ -57,7 +57,7 @@ export default function LoginPage() {
 
         {login.isError && <InlineError>{getErrorMessage(login.error)}</InlineError>}
 
-        <Button type="submit" className="w-full" disabled={login.isPending}>
+        <Button type="submit" size="lg" className="w-full" disabled={login.isPending}>
           {login.isPending && <Loader2 className="animate-spin" aria-hidden />}
           {login.isPending ? "Entrando…" : "Entrar"}
         </Button>

@@ -82,7 +82,7 @@ export default function RegisterPage() {
 
         {showGenericError && <InlineError>{getErrorMessage(register.error)}</InlineError>}
 
-        <Button type="submit" className="w-full" disabled={register.isPending}>
+        <Button type="submit" size="lg" className="w-full" disabled={register.isPending}>
           {register.isPending && <Loader2 className="animate-spin" aria-hidden />}
           {register.isPending ? "Criando conta…" : "Criar conta"}
         </Button>

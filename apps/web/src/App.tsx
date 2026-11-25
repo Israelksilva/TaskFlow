@@ -5,6 +5,7 @@ import { HashRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LoadingScreen } from "@/components/feedback/LoadingScreen";
+import { AppShell } from "@/components/layout/AppShell";
 import { AuthProvider } from "@/features/auth/auth-context";
 import { GuestOnly, RequireAuth } from "@/features/auth/route-guards";
 import { queryClient } from "@/lib/query-client";
@@ -13,6 +14,7 @@ const TasksPage = lazy(() => import("@/features/tasks/pages/TasksPage"));
 const LoginPage = lazy(() => import("@/features/auth/pages/LoginPage"));
 const RegisterPage = lazy(() => import("@/features/auth/pages/RegisterPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
+const DesignSystemPage = lazy(() => import("@/pages/DesignSystemPage"));
 
 export default function App() {
   return (
@@ -25,7 +27,10 @@ export default function App() {
               <Suspense fallback={<LoadingScreen />}>
                 <Routes>
                   <Route element={<RequireAuth />}>
-                    <Route path="/" element={<TasksPage />} />
+                    <Route element={<AppShell />}>
+                      <Route path="/" element={<TasksPage />} />
+                      <Route path="/design-system" element={<DesignSystemPage />} />
+                    </Route>
                   </Route>
                   <Route element={<GuestOnly />}>
                     <Route path="/entrar" element={<LoginPage />} />
