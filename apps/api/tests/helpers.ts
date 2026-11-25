@@ -9,6 +9,7 @@ export const api = () => request(app);
 let counter = 0;
 
 export async function resetDatabase() {
+  await db.query("DELETE FROM contact_messages");
   await db.query("DELETE FROM tasks");
   await db.query("DELETE FROM users");
 }

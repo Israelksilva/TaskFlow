@@ -1,13 +1,13 @@
 import { Router } from "express";
 import { rateLimit } from "express-rate-limit";
-import { isTest } from "../../config/env";
+import { env, isTest } from "../../config/env";
 import { authenticate } from "../../middlewares/authenticate";
 import { authController } from "./auth.controller";
 
 /** Limita tentativas de login/cadastro por IP (proteção contra força bruta). */
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 20,
+  limit: env.AUTH_LIMIT_PER_15MIN,
   standardHeaders: "draft-8",
   legacyHeaders: false,
   skip: () => isTest,

@@ -23,6 +23,8 @@ const envSchema = z
           .filter(Boolean),
       ),
     RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(300),
+    AUTH_LIMIT_PER_15MIN: z.coerce.number().int().positive().default(20),
+    CONTACT_LIMIT_PER_HOUR: z.coerce.number().int().positive().default(5),
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
       .default("info"),
