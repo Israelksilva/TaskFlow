@@ -19,7 +19,7 @@ Entrega dos [requisitos](REQUISITOS.md) em fases incrementais, sobre a [arquitet
 | 0    | Análise e planejamento                                                 | §1                                | ⏸      |
 | 1    | Fundação: correções, testes E2E, API v1                                | §1, §26, §27                      | ⏸      |
 | 2    | Design system, AppShell e redesign das telas atuais                    | §2, §6                            | ⏸      |
-| 3    | Landing page comercial, SEO e páginas legais                           | §3                                | ⬜     |
+| 3    | Landing page comercial, SEO e páginas legais                           | §3                                | ⏸      |
 | 4    | Autenticação completa e segurança de contas                            | §4, §22 (segurança)               | ⬜     |
 | 5    | Multiempresa: workspaces, membros, equipes, RBAC, projetos, onboarding | §4 (onboarding), §7, §8, §12, §26 | ⬜     |
 | 6    | **Notificações** (internas, tempo real, e-mail, push, lembretes)       | §11, §22 (preferências)           | ⬜     |
@@ -99,18 +99,30 @@ notificações) entram nas fases que criam essas áreas.
 
 ---
 
-## Fase 3 — Landing page comercial
+## Fase 3 — Landing page comercial ⏸
 
-**Decisão necessária:** ADR-002 (hospedagem do front).
+**Decisão:** ADR-002 — continuar no GitHub Pages com `HashRouter` (Israel, 25/11/2026).
 
-- [ ] P0 Landing: navbar, hero com a chamada de `§3`, demonstração com screenshots reais, seções de
+- [x] P0 Landing: navbar, hero com a chamada de `§3`, demonstração com screenshots reais, seções de
       funcionalidades, projetos, colaboração, notificações, produtividade, benefícios
-- [ ] P0 Planos com os valores de `§23` (marcados "em breve" até a Fase 13); FAQ; cadastro/login
-- [ ] P0 Formulário de contato salvo no banco, com anti-spam e rate limit
-- [ ] P0 Política de privacidade e termos de uso (rascunho para revisão jurídica)
-- [ ] P0 SEO, Open Graph, sitemap, robots; cabeçalhos de segurança (S-07)
-- [ ] P1 Animações de navegação
-- [ ] Regra: só apresentar como disponível o que existe; nada de clientes, depoimentos ou números inventados
+- [x] P0 Planos com os valores de `§23` (marcados "em breve" até a Fase 13); FAQ; cadastro/login
+- [x] P0 Formulário de contato salvo no banco, com anti-spam e rate limit
+- [x] P0 Política de privacidade e termos de uso (rascunho para revisão jurídica)
+- [x] P0 SEO, Open Graph, sitemap, robots; CSP via `<meta>` (S-07 parcial — limite do GitHub Pages)
+- [x] P1 Animações de navegação (entrada das seções, respeitando `prefers-reduced-motion`)
+- [x] Regra: só apresentar como disponível o que existe; nada de clientes, depoimentos ou números inventados
+
+**Resultado:** landing em `/` e app em `/#/app`; login e cadastro com painel violeta e captura real;
+26 testes E2E (inclui axe na landing, privacidade e termos, nos dois temas), 40 testes da API e
+14 do front. Pendências fora do escopo: aviso por e-mail das mensagens (Fase 6), leitura das
+mensagens no painel administrativo, revisão jurídica dos textos legais.
+
+**Referências visuais (25/11/2026):** Israel enviou mockups de dashboards, Kanban e login (estilo
+violeta, cards arredondados) e uma prévia da "Visão geral" do Andamo (cards de total, em andamento,
+concluídas e atrasadas, produtividade semanal, progresso) com menu completo (Quadro Kanban, Meus
+projetos, Minhas tarefas, Calendário, Equipe, Relatórios, Notificações, Configurações, Aparência).
+Aplicadas agora na landing e no login; a Visão geral e cada item do menu entram nas fases das
+funcionalidades correspondentes, sempre com dados reais.
 
 ---
 
@@ -274,7 +286,7 @@ reinício do servidor.
 | #   | Pergunta                                                           | Bloqueia           | Recomendação                         |
 | --- | ------------------------------------------------------------------ | ------------------ | ------------------------------------ |
 | 1   | Restante do documento de requisitos (o texto parou no meio do §27) | Planejamento final | Enviar o restante                    |
-| 2   | Hospedagem do front (ADR-002)                                      | Fase 3             | Cloudflare Pages + `BrowserRouter`   |
+| 2   | Hospedagem do front (ADR-002)                                      | Fase 3             | ✅ GitHub Pages + `HashRouter`        |
 | 3   | Domínio próprio (ADR-003)                                          | Fase 4             | Registrar `andamo.com.br` ou similar |
 | 4   | Conta no Resend e domínio de envio (ADR-004)                       | Fase 4             | Resend                               |
 | 5   | API sempre ligada (ADR-008) — custo mensal                         | Fase 6             | Render Starter ou equivalente        |

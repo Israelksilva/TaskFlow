@@ -6,6 +6,31 @@ Todas as mudanças relevantes do Andamo. Formato baseado em
 
 ## [Não publicado]
 
+### Fase 3 — Landing page comercial, SEO e páginas legais
+
+#### Adicionado
+
+- Landing pública em `/`: hero, funcionalidades disponíveis, demonstração com capturas reais (claro,
+  escuro, celular), pilares com selo "Disponível" ou "Em desenvolvimento", benefícios, planos Free,
+  Pro e Business ("em breve", sem cobrança), perguntas frequentes e contato.
+- Formulário de contato (`POST /v1/contato`) salvo no banco, com campo-isca, tempo mínimo de
+  preenchimento e limite por IP; consentimento obrigatório.
+- Política de Privacidade (`/#/privacidade`) e Termos de Uso (`/#/termos`) — rascunhos para revisão
+  jurídica.
+- SEO: título e descrição, Open Graph e Twitter Card com imagem, JSON-LD, `sitemap.xml`,
+  `robots.txt` e URL canônica (`VITE_SITE_URL`).
+- CSP via `<meta>` no build de produção.
+- Testes: E2E da landing, contato, páginas legais e redirecionamentos; axe na landing e nas páginas
+  legais; testes do formulário de contato.
+
+#### Alterado
+
+- O app passou para `/#/app` (o antigo `/#/design-system` redireciona). Após o login, o usuário volta
+  para a página protegida que tentou abrir.
+- Login e cadastro com painel violeta e captura real do quadro.
+- Fontes servidas pelo próprio site, em vez do Google Fonts.
+- Limites de tentativas configuráveis (`AUTH_LIMIT_PER_15MIN`, `CONTACT_LIMIT_PER_HOUR`).
+
 ### Fase 2 — Design system, AppShell e redesign
 
 #### Adicionado

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  contactSchema,
   createTaskSchema,
   importTasksSchema,
   loginSchema,
@@ -48,8 +49,23 @@ export function buildOpenApiSpec(version: string) {
     },
     servers: [{ url: "/v1" }],
     security: [{ bearerAuth: [] }],
-    tags: [{ name: "Autenticação" }, { name: "Tarefas" }],
+    tags: [{ name: "Autenticação" }, { name: "Tarefas" }, { name: "Público" }],
     paths: {
+      "/contato": {
+        post: {
+          tags: ["Público"],
+          summary: "Envia mensagem do formulário de contato (5 por hora por IP)",
+          security: [],
+          requestBody: { required: true, content: json(input(contactSchema)) },
+          responses: {
+            201: {
+              description: "Recebida",
+              content: json({ type: "object", properties: { ok: { type: "boolean" } } }),
+            },
+            ...errors(422, 429),
+          },
+        },
+      },
       "/auth/cadastro": {
         post: {
           tags: ["Autenticação"],

@@ -25,7 +25,7 @@ test("sidebar recolhe, lembra a escolha e navega", async ({ page }) => {
 });
 
 test("criação rápida abre o formulário a partir de outra página", async ({ page }) => {
-  await page.goto("/#/design-system");
+  await page.goto("/#/app/design-system");
   await page.getByRole("button", { name: "Criação rápida" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Título").fill("Via criação rápida");

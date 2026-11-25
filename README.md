@@ -51,6 +51,7 @@ Tipografia: **Plus Jakarta Sans** (títulos) e **Inter** (texto). Arquivos em [`
 - Atalhos: <kbd>N</kbd> nova tarefa · <kbd>/</kbd> buscar · <kbd>Ctrl</kbd>+<kbd>Enter</kbd> salvar
 - Importa tarefas antigas salvas no `localStorage` (versão anterior), sem apagar a cópia local
 - Tema claro/escuro
+- Landing pública em `/` (app em `/#/app`), formulário de contato, Política de Privacidade e Termos de Uso
 
 ## Estrutura
 
@@ -90,6 +91,7 @@ Todas as rotas de tarefas exigem `Authorization: Bearer <token>`.
 | PATCH | `/tarefas/:id` | Atualiza **só os campos enviados**; `status`/`position` reordenam | 200, 404, 422 |
 | DELETE | `/tarefas/:id` | Exclui | 204, 404 |
 | POST | `/tarefas/importar` | Importação em lote (atômica) | 201, 422 |
+| POST | `/contato` | Mensagem do formulário da landing (público, anti-spam) | 201, 422, 429 |
 | GET | `/health` | Health check | 200 |
 
 Erros seguem o formato `{ "error": { "code", "message", "details?" } }`.
@@ -124,7 +126,7 @@ Com PGlite, não rode `db:seed` com a API ligada: o banco embutido aceita um pro
 ### Variáveis de ambiente
 
 - `apps/api/.env` — **somente no servidor**: `DATABASE_URL`, `JWT_SECRET`, `PORT`, `CORS_ORIGIN`…
-- `apps/web/.env` — apenas `VITE_API_URL` (pública). Em desenvolvimento é `/api`, repassado pelo proxy do Vite.
+- `apps/web/.env` — apenas valores públicos: `VITE_API_URL` (em desenvolvimento `/api`, repassado pelo proxy do Vite) e `VITE_SITE_URL` (URL pública usada em SEO, Open Graph e sitemap; padrão `https://israelksilva.github.io/TaskFlow/`).
 
 ## Scripts
 
@@ -132,6 +134,7 @@ Com PGlite, não rode `db:seed` com a API ligada: o banco embutido aceita um pro
 |---|---|
 | `npm run dev` | API + front em modo desenvolvimento |
 | `npm test` | Testes de shared, API e web |
+| `npm run test:e2e` | E2E (Playwright) com auditoria de acessibilidade |
 | `npm run lint` / `npm run typecheck` | Qualidade |
 | `npm run build` | Build da API (`apps/api/dist`) e do front (`apps/web/dist`) |
 | `npm run db:migrate` / `npm run db:seed` | Banco |
@@ -139,7 +142,7 @@ Com PGlite, não rode `db:seed` com a API ligada: o banco embutido aceita um pro
 ## Deploy (próxima etapa)
 
 - **API no Render:** `render.yaml` já está pronto (usa `PORT`, health check em `/health`, aplica migrações no start).
-- **Front:** defina `VITE_API_URL` com a URL do Render e publique `apps/web/dist` (ex.: GitHub Pages com `npm run deploy -w @andamo/web`). Inclua a origem do front em `CORS_ORIGIN`.
+- **Front:** defina `VITE_API_URL` com a URL do Render e publique `apps/web/dist` (ex.: GitHub Pages com `npm run deploy -w @andamo/web`). Inclua a origem do front em `CORS_ORIGIN`. O build injeta a CSP com a origem da API, então gere-o sempre com o `VITE_API_URL` de produção.
 
 ---
 

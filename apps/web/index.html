@@ -3,26 +3,48 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#6D5DFC" />
-    <title>Andamo — Seu trabalho em andamento</title>
+    <!-- CSP -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="theme-color" content="#6D5DFC" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#12101F" media="(prefers-color-scheme: dark)" />
+    <title>Andamo — Organize seu trabalho. Conecte sua equipe. Faça acontecer.</title>
     <meta
       name="description"
-      content="Andamo: quadro de tarefas Kanban com arrastar e soltar, sincronizado na nuvem. Desenvolvido por Israel Alcantara."
+      content="Andamo é um gerenciador de tarefas em quadro Kanban: arraste tarefas entre colunas, defina prioridades e prazos e acompanhe tudo sincronizado na nuvem. Comece grátis."
     />
     <meta name="author" content="Israel Alcantara" />
+    <link rel="canonical" href="%SITE_URL%" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
 
-    <meta property="og:title" content="Andamo — Seu trabalho em andamento" />
-    <meta property="og:description" content="Organize tarefas em um quadro Kanban moderno, rápido e acessível." />
     <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary" />
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
-      rel="stylesheet"
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:site_name" content="Andamo" />
+    <meta property="og:url" content="%SITE_URL%" />
+    <meta property="og:title" content="Andamo — Organize seu trabalho. Conecte sua equipe. Faça acontecer." />
+    <meta
+      property="og:description"
+      content="Quadro Kanban rápido e acessível, com prioridades, prazos e sincronização na nuvem. Comece grátis."
     />
+    <meta property="og:image" content="%SITE_URL%og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Quadro Kanban do Andamo com colunas A Fazer, Em Progresso e Concluído" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="%SITE_URL%og-image.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Andamo",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "inLanguage": "pt-BR",
+        "url": "%SITE_URL%",
+        "description": "Gerenciador de tarefas em quadro Kanban com prioridades, prazos e sincronização na nuvem.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL", "name": "Free" }
+      }
+    </script>
   </head>
 
   <body>

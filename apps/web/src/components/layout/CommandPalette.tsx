@@ -48,11 +48,11 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
             <CommandEmpty>Nada encontrado.</CommandEmpty>
 
             <CommandGroup heading="Ações">
-              <CommandItem onSelect={() => run(() => navigate("/?nova=1"))}>
+              <CommandItem onSelect={() => run(() => navigate("/app?nova=1"))}>
                 <Plus aria-hidden /> Nova tarefa
                 <CommandShortcut>N</CommandShortcut>
               </CommandItem>
-              <CommandItem onSelect={() => run(() => navigate("/?buscar=1"))}>
+              <CommandItem onSelect={() => run(() => navigate("/app?buscar=1"))}>
                 <Search aria-hidden /> Buscar no quadro
                 <CommandShortcut>/</CommandShortcut>
               </CommandItem>
@@ -73,7 +73,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
                     key={task.id}
                     value={`tarefa ${task.title} ${task.id}`}
                     keywords={[task.description ?? "", STATUS_LABELS[task.status]]}
-                    onSelect={() => run(() => navigate(`/?editar=${task.id}`))}
+                    onSelect={() => run(() => navigate(`/app?editar=${task.id}`))}
                   >
                     <FileText aria-hidden />
                     <span className="truncate">{task.title}</span>

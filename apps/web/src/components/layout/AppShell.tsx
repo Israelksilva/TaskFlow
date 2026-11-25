@@ -125,7 +125,7 @@ export function AppShell() {
                 size="icon"
                 className="h-9 w-9"
                 aria-label="Criação rápida"
-                onClick={() => navigate("/?nova=1")}
+                onClick={() => navigate("/app?nova=1")}
               >
                 <Plus aria-hidden />
               </Button>
