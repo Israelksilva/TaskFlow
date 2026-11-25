@@ -5,6 +5,7 @@ import { emit } from "../../events/bus";
 import { toISO } from "../../shared/dates";
 import { BadRequestError, ForbiddenError, NotFoundError, PlanLimitError } from "../../shared/errors";
 import { activityRepository } from "../activity/activity.repository";
+import { columnRepository } from "./column.repository";
 import { workspaceRepository } from "../workspaces/workspace.repository";
 
 type CreateData = z.output<typeof createProjectSchema>;
@@ -115,10 +116,10 @@ async function validateRefs(ctx: ProjectContext, data: { ownerId?: string | null
 }
 
 /** Copia as tarefas principais (com checklist e etiquetas) de um projeto para outro. */
-async function copyTasks(tx: Queryable, fromProjectId: string, toProjectId: string, userId: string) {
-  const { rows } = await tx.query<{ old_id: string; new_id: string }>(
+async function copyTasks(tx: Queryable, fromProjectId: string, toProjectId: string, userId: string, columnMap: Map<string, string>) {
+  const { rows } = await tx.query<{ old_id: string; new_id: string; old_column: string | null }>(
     `WITH src AS (
-       SELECT id, title, description, priority, status, position, start_date, due_date, due_time, estimate_minutes, recurrence, workspace_id
+       SELECT id, title, description, priority, status, position, start_date, due_date, due_time, estimate_minutes, recurrence, workspace_id, column_id
        FROM tasks WHERE project_id = $1 AND parent_id IS NULL AND deleted_at IS NULL AND archived_at IS NULL
      ), ins AS (
        INSERT INTO tasks (workspace_id, project_id, user_id, title, description, priority, status, position, start_date,
@@ -128,10 +129,11 @@ async function copyTasks(tx: Queryable, fromProjectId: string, toProjectId: stri
        FROM src ORDER BY status, position
        RETURNING id, title, position, status
      )
-     SELECT s.id AS old_id, i.id AS new_id FROM src s JOIN ins i ON i.title = s.title AND i.position = s.position AND i.status = s.status`,
+     SELECT s.id AS old_id, i.id AS new_id, s.column_id AS old_column FROM src s JOIN ins i ON i.title = s.title AND i.position = s.position AND i.status = s.status`,
     [fromProjectId, toProjectId, userId],
   );
-  for (const { old_id, new_id } of rows) {
+  for (const { old_id, new_id, old_column } of rows) {
+    await tx.query(`UPDATE tasks SET column_id = $2 WHERE id = $1`, [new_id, old_column ? (columnMap.get(old_column) ?? null) : null]);
     await tx.query(
       `INSERT INTO checklist_items (task_id, content, done, position) SELECT $2, content, false, position FROM checklist_items WHERE task_id = $1`,
       [old_id, new_id],
@@ -171,7 +173,10 @@ export const projectService = {
       );
       if (data.templateId) {
         const template = await findOrFail(ctx, data.templateId, tx);
-        await copyTasks(tx, template.row.id, rows[0].id, ctx.userId);
+        const columnMap = await columnRepository.copy(template.row.id, rows[0].id, tx);
+        await copyTasks(tx, template.row.id, rows[0].id, ctx.userId, columnMap);
+      } else {
+        await columnRepository.createDefaults(rows[0].id, tx);
       }
       await activityRepository.log(
         { workspaceId: ctx.workspaceId, actorId: ctx.userId, entityType: "project", entityId: rows[0].id, projectId: rows[0].id, action: "project.created", data: { name: data.name } },
@@ -261,5 +266,13 @@ export const projectService = {
       action: "project.deleted", data: { name: current.dto.name },
     });
     await emit("project.deleted", { project: current.dto, actorId: ctx.userId });
+  },
+};
+
+/** Acesso a projetos para outros módulos (colunas, tempo): mesma regra de tenant e permissão. */
+export const projectAccess = {
+  get: (ctx: ProjectContext, id: string) => findOrFail(ctx, id).then((r) => r.dto),
+  async assertCanManageById(ctx: ProjectContext, id: string) {
+    assertCanManage(ctx, (await findOrFail(ctx, id)).row);
   },
 };

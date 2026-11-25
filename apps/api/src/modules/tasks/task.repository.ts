@@ -5,6 +5,7 @@ export interface TaskRow {
   id: string;
   workspace_id: string;
   project_id: string;
+  column_id: string | null;
   parent_id: string | null;
   user_id: string | null;
   title: string;
@@ -17,6 +18,7 @@ export interface TaskRow {
   due_date: string | null;
   due_time: string | null;
   estimate_minutes: number | null;
+  tracked_seconds: number;
   recurrence: string | null;
   assignee_ids: string[];
   label_ids: string[];
@@ -32,9 +34,11 @@ export interface TaskRow {
   updated_at: Date | string;
 }
 
-export const TASK_SELECT = `SELECT t.id, t.workspace_id, t.project_id, t.parent_id, t.user_id, t.title, t.description,
+export const TASK_SELECT = `SELECT t.id, t.workspace_id, t.project_id, t.column_id, t.parent_id, t.user_id, t.title, t.description,
   t.priority, t.status, t.position, t.start_date::text AS start_date, t.due_date::text AS due_date,
   to_char(t.due_time, 'HH24:MI') AS due_time, t.estimate_minutes, t.recurrence,
+  (SELECT COALESCE(sum(COALESCE(e.duration_seconds, extract(epoch FROM now() - e.started_at)::int)), 0)::int
+     FROM time_entries e WHERE e.task_id = t.id) AS tracked_seconds,
   COALESCE((SELECT array_agg(a.user_id ORDER BY a.assigned_at) FROM task_assignees a WHERE a.task_id = t.id), '{}') AS assignee_ids,
   COALESCE((SELECT array_agg(l.label_id) FROM task_labels l WHERE l.task_id = t.id), '{}') AS label_ids,
   (SELECT count(*)::int FROM tasks s WHERE s.parent_id = t.id AND s.deleted_at IS NULL) AS subtask_count,
@@ -59,6 +63,7 @@ const EDITABLE = {
   recurrence: "recurrence",
   completedAt: "completed_at",
   projectId: "project_id",
+  columnId: "column_id",
   archivedAt: "archived_at",
   deletedAt: "deleted_at",
 } as const;
@@ -76,6 +81,7 @@ export type TaskChanges = Partial<{
   recurrence: Recurrence | null;
   completedAt: Date | null;
   projectId: string;
+  columnId: string | null;
   archivedAt: Date | null;
   deletedAt: Date | null;
 }>;
@@ -83,6 +89,7 @@ export type TaskChanges = Partial<{
 export interface NewTask {
   workspaceId: string;
   projectId: string;
+  columnId: string | null;
   parentId: string | null;
   userId: string;
   title: string;
@@ -106,7 +113,7 @@ export const taskRepository = {
   async listBoard(projectId: string, db: Queryable = defaultDb): Promise<TaskRow[]> {
     const { rows } = await db.query<TaskRow>(
       `${TASK_SELECT} WHERE t.project_id = $1 AND ${ON_BOARD}
-       ORDER BY CASE t.status WHEN 'todo' THEN 0 WHEN 'doing' THEN 1 ELSE 2 END, t.position, t.created_at`,
+       ORDER BY (SELECT c.position FROM project_columns c WHERE c.id = t.column_id) NULLS LAST, t.position, t.created_at`,
       [projectId],
     );
     return rows;
@@ -140,10 +147,10 @@ export const taskRepository = {
     return rows;
   },
 
-  async countInColumn(projectId: string, status: TaskStatus, db: Queryable = defaultDb) {
+  async countInColumn(columnId: string, db: Queryable = defaultDb) {
     const { rows } = await db.query<{ count: number }>(
-      `SELECT count(*)::int AS count FROM tasks t WHERE t.project_id = $1 AND t.status = $2 AND ${ON_BOARD}`,
-      [projectId, status],
+      `SELECT count(*)::int AS count FROM tasks t WHERE t.column_id = $1 AND ${ON_BOARD}`,
+      [columnId],
     );
     return rows[0].count;
   },
@@ -159,13 +166,13 @@ export const taskRepository = {
   async create(task: NewTask, db: Queryable = defaultDb): Promise<string> {
     const { rows } = await db.query<{ id: string }>(
       `INSERT INTO tasks (workspace_id, project_id, parent_id, user_id, title, description, priority, status, position,
-         start_date, due_date, due_time, estimate_minutes, recurrence, completed_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+         start_date, due_date, due_time, estimate_minutes, recurrence, completed_at, column_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
        RETURNING id`,
       [
         task.workspaceId, task.projectId, task.parentId, task.userId, task.title, task.description, task.priority,
         task.status, task.position, task.startDate, task.dueDate, task.dueTime, task.estimateMinutes,
-        task.recurrence, task.completedAt,
+        task.recurrence, task.completedAt, task.columnId,
       ],
     );
     return rows[0].id;

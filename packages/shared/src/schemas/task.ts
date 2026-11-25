@@ -58,6 +58,7 @@ export const createTaskSchema = z.object({
   status: taskStatusSchema.default("todo"),
   dueDate: optionalDueDate.transform((v) => v ?? null),
   projectId: uuidSchema.optional(),
+  columnId: uuidSchema.optional(),
   parentId: uuidSchema.nullish().transform((v) => v ?? null),
   startDate: optionalDueDate.transform((v) => v ?? null),
   dueTime: dueTimeSchema.transform((v) => v ?? null),
@@ -89,6 +90,8 @@ export const updateTaskSchema = z
     estimateMinutes: estimateSchema,
     recurrence: recurrenceSchema,
     projectId: uuidSchema.optional(),
+    /** Coluna de destino (Kanban personalizável). Tem precedência sobre `status`. */
+    columnId: uuidSchema.optional(),
     assigneeIds: idListSchema.optional(),
     labelIds: idListSchema.optional(),
     /** Versão conhecida pelo cliente (updatedAt): detecta edição concorrente. */
@@ -165,3 +168,59 @@ export type ImportTasksInput = z.input<typeof importTasksSchema>;
 export type BulkTaskInput = z.input<typeof bulkTaskSchema>;
 export type TaskQuery = z.infer<typeof taskQuerySchema>;
 export type TaskQueryInput = z.input<typeof taskQuerySchema>;
+
+// ---------------------------------------------------------------- colunas do quadro
+const columnName = z.string().trim().min(1, "Informe o nome da coluna").max(40, "Use no máximo 40 caracteres");
+const wipLimit = z.number().int().min(1, "O limite deve ser ao menos 1").max(999).nullable();
+const columnColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor inválida").nullable();
+
+export const createColumnSchema = z.object({
+  name: columnName,
+  category: taskStatusSchema.default("doing"),
+  wipLimit: wipLimit.optional(),
+  color: columnColor.optional(),
+});
+
+export const updateColumnSchema = z
+  .object({ name: columnName.optional(), category: taskStatusSchema.optional(), wipLimit: wipLimit.optional(), color: columnColor.optional() })
+  .strict("Campo não permitido")
+  .refine((d) => Object.values(d).some((v) => v !== undefined), "Informe ao menos um campo");
+
+export const reorderColumnsSchema = z.object({ ids: z.array(uuidSchema).min(1).max(50) });
+
+export const deleteColumnSchema = z.object({ moveToColumnId: uuidSchema.optional() });
+
+// ---------------------------------------------------------------- controle de tempo
+export const startTimerSchema = z.object({
+  /** Se já houver um cronômetro rodando, encerra-o e inicia este. */
+  switch: z.boolean().default(false),
+});
+
+export const manualTimeSchema = z.object({
+  startedAt: z.string().datetime({ offset: true, message: "Data/hora inválida" }),
+  minutes: z.number().int().min(1, "Informe ao menos 1 minuto").max(24 * 60, "No máximo 24 horas por registro"),
+  note: z.string().trim().max(500).nullish().transform((v) => v || null),
+});
+
+export const updateTimeEntrySchema = z
+  .object({
+    startedAt: z.string().datetime({ offset: true }).optional(),
+    minutes: z.number().int().min(1).max(24 * 60).optional(),
+    note: z.string().trim().max(500).nullable().optional(),
+  })
+  .strict()
+  .refine((d) => Object.values(d).some((v) => v !== undefined), "Informe ao menos um campo");
+
+export const timeQuerySchema = z.object({
+  from: dueDateSchema,
+  to: dueDateSchema,
+  userId: z.union([z.literal("me"), uuidSchema]).optional(),
+  projectId: uuidSchema.optional(),
+  taskId: uuidSchema.optional(),
+});
+
+export type CreateColumnInput = z.input<typeof createColumnSchema>;
+export type UpdateColumnInput = z.input<typeof updateColumnSchema>;
+export type ManualTimeInput = z.input<typeof manualTimeSchema>;
+export type UpdateTimeEntryInput = z.input<typeof updateTimeEntrySchema>;
+export type TimeQuery = z.input<typeof timeQuerySchema>;

@@ -3,7 +3,15 @@ import { z } from "zod";
 import {
   acceptInvitationSchema,
   commentSchema,
+  createColumnSchema,
   createProjectSchema,
+  deleteColumnSchema,
+  manualTimeSchema,
+  reorderColumnsSchema,
+  startTimerSchema,
+  timeQuerySchema,
+  updateColumnSchema,
+  updateTimeEntrySchema,
   createWorkspaceSchema,
   cursorQuerySchema,
   dashboardQuerySchema,
@@ -24,7 +32,9 @@ import { parse } from "../../shared/validation";
 import { activityRepository } from "../activity/activity.repository";
 import { commentService } from "../comments/comment.service";
 import { dashboardService } from "../dashboard/dashboard.service";
+import { columnService } from "../projects/column.service";
 import { projectService, type ProjectContext } from "../projects/project.service";
+import { timeService } from "../time/time.service";
 import { taskRoutes } from "../tasks/task.routes";
 import type { TaskContext } from "../tasks/task.service";
 import { workspaceService as ws, type WorkspaceContext } from "./workspace.service";
@@ -192,6 +202,50 @@ w.delete("/tarefas/:taskId/comentarios/:id", writable, async (req, res) => {
 w.post("/tarefas/:taskId/comentarios/:id/reacoes", writable, async (req, res) => {
   const { emoji } = parse(reactionSchema, req.body);
   res.json({ comment: await commentService.toggleReaction(wsCtx(req), taskIdOf(req), idParam(req, "id", "Comentário"), emoji) });
+});
+
+// ---- colunas do quadro (Kanban personalizável)
+const projectIdOf = (req: Request) => idParam(req, "id", "Projeto");
+w.get("/projetos/:id/colunas", async (req, res) => {
+  res.json({ columns: await columnService.list(wsCtx(req), projectIdOf(req)) });
+});
+w.post("/projetos/:id/colunas", writable, async (req, res) => {
+  res.status(201).json({ column: await columnService.create(wsCtx(req), projectIdOf(req), parse(createColumnSchema, req.body)) });
+});
+w.put("/projetos/:id/colunas/ordem", writable, async (req, res) => {
+  const { ids } = parse(reorderColumnsSchema, req.body);
+  res.json({ columns: await columnService.reorder(wsCtx(req), projectIdOf(req), ids) });
+});
+w.patch("/projetos/:id/colunas/:columnId", writable, async (req, res) => {
+  const data = parse(updateColumnSchema, req.body);
+  res.json({ column: await columnService.update(wsCtx(req), projectIdOf(req), idParam(req, "columnId", "Coluna"), data) });
+});
+w.delete("/projetos/:id/colunas/:columnId", writable, async (req, res) => {
+  const { moveToColumnId } = parse(deleteColumnSchema, req.body ?? {});
+  await columnService.remove(wsCtx(req), projectIdOf(req), idParam(req, "columnId", "Coluna"), moveToColumnId);
+  res.status(204).end();
+});
+
+// ---- controle de tempo
+w.get("/tempo", async (req, res) => {
+  res.json({ entries: await timeService.list(wsCtx(req), parse(timeQuerySchema, req.query)) });
+});
+w.get("/tempo/resumo", async (req, res) => {
+  res.json(await timeService.summary(wsCtx(req), parse(timeQuerySchema, req.query)));
+});
+w.post("/tarefas/:taskId/tempo/iniciar", writable, async (req, res) => {
+  const { switch: switchRunning } = parse(startTimerSchema, req.body ?? {});
+  res.status(201).json({ entry: await timeService.start(wsCtx(req), taskIdOf(req), switchRunning) });
+});
+w.post("/tarefas/:taskId/tempo", writable, async (req, res) => {
+  res.status(201).json({ entry: await timeService.addManual(wsCtx(req), taskIdOf(req), parse(manualTimeSchema, req.body)) });
+});
+w.patch("/tempo/:id", writable, async (req, res) => {
+  res.json({ entry: await timeService.update(wsCtx(req), idParam(req, "id", "Registro"), parse(updateTimeEntrySchema, req.body)) });
+});
+w.delete("/tempo/:id", writable, async (req, res) => {
+  await timeService.remove(wsCtx(req), idParam(req, "id", "Registro"));
+  res.status(204).end();
 });
 
 // ---- tarefas

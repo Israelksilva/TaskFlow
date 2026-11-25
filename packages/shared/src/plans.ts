@@ -38,11 +38,11 @@ export const PLANS: Record<PlanId, Plan> = {
     name: "Free",
     priceCents: 0,
     tagline: "Para organizar o seu trabalho e pequenos times.",
-    highlights: ["Até 5 membros", "Até 3 projetos", "Kanban, lista e calendário", "Notificações e lembretes"],
+    highlights: ["Até 5 membros", "Até 3 projetos", "Kanban personalizável, lista e calendário", "Controle de tempo e lembretes"],
     limits: { members: 5, projects: 3, storageMb: 100, automations: 0 },
     features: {
       views: true,
-      timeTracking: false,
+      timeTracking: true,
       reports: false,
       automations: false,
       guests: false,

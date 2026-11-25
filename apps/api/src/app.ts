@@ -13,6 +13,7 @@ import { authRoutes } from "./modules/auth/auth.routes";
 import { notificationRoutes } from "./modules/notifications/notification.routes";
 import { publicRoutes } from "./modules/public/public.routes";
 import { legacyTaskRoutes } from "./modules/tasks/task.routes";
+import { timerRoutes } from "./modules/time/time.routes";
 import { workspaceRoutes } from "./modules/workspaces/workspace.routes";
 import { connectedCount } from "./realtime/hub";
 // Registra handlers de jobs e assinantes de eventos.
@@ -82,6 +83,7 @@ export function createApp() {
   app.use("/v1/auth", authRoutes);
   app.use("/v1/workspaces", workspaceRoutes);
   app.use("/v1/notificacoes", notificationRoutes);
+  app.use("/v1/tempo", timerRoutes);
 
   // Rotas originais (compatibilidade com o cliente anterior)
   app.use("/auth", authRoutes);

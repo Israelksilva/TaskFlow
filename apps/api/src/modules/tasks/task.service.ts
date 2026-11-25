@@ -2,10 +2,11 @@ import type { z } from "zod";
 import {
   addDays,
   can,
-  diffOrder,
-  moveTask,
+  diffColumnOrder,
+  groupByColumn,
+  moveToColumn,
   normalizeText,
-  removeTask,
+  type BoardColumn,
   type BulkTaskInput,
   type ChecklistItem,
   type createTaskSchema,
@@ -21,6 +22,7 @@ import { db, type Queryable } from "../../db";
 import { emit } from "../../events/bus";
 import { BadRequestError, ConflictError, ForbiddenError, NotFoundError } from "../../shared/errors";
 import { activityRepository } from "../activity/activity.repository";
+import { columnRepository } from "../projects/column.repository";
 import { workspaceRepository } from "../workspaces/workspace.repository";
 import { toTaskDTO } from "./task.mapper";
 import { TASK_SELECT, taskRepository, type TaskChanges, type TaskRow } from "./task.repository";
@@ -83,28 +85,63 @@ async function validLabels(workspaceId: string, ids: string[], tx: Queryable): P
   return rows.map((r) => r.id);
 }
 
-/** Normaliza as posições (0..n-1) de todas as colunas do quadro do projeto. */
+/** Normaliza as posições (0..n-1) de cada coluna do quadro do projeto. */
 async function compactBoard(tx: Queryable, projectId: string) {
+  const columns = await columnRepository.list(projectId, tx);
   const before = (await taskRepository.listBoard(projectId, tx)).map(toTaskDTO);
-  for (const task of diffOrder(before, removeTask(before, ""))) await taskRepository.setPosition(task.id, task.position, tx);
+  const groups = groupByColumn(before, columns);
+  for (const list of Object.values(groups)) {
+    for (const [position, task] of list.entries()) {
+      if (task.position !== position) await taskRepository.setPosition(task.id, position, tx);
+    }
+  }
 }
 
 /**
- * Reposiciona a tarefa no quadro e grava somente as linhas cujo status/posição mudaram.
+ * Coluna de destino: a informada (validada no projeto) ou, a partir do status, a coluna atual
+ * se já tiver essa categoria, senão a primeira coluna com essa categoria.
+ */
+function pickColumn(columns: BoardColumn[], opts: { columnId?: string | null; status?: TaskStatus; current?: string | null }): BoardColumn {
+  if (opts.columnId) {
+    const col = columns.find((c) => c.id === opts.columnId);
+    if (!col) throw new BadRequestError("Coluna inválida para este projeto", "INVALID_COLUMN");
+    return col;
+  }
+  const status = opts.status ?? "todo";
+  const current = columns.find((c) => c.id === opts.current);
+  if (current && current.category === status) return current;
+  const col = columns.find((c) => c.category === status) ?? columns[0];
+  if (!col) throw new BadRequestError("O projeto não tem colunas", "NO_COLUMNS");
+  return col;
+}
+
+/** Coluna para onde volta uma tarefa restaurada/desarquivada (a sua, se ainda existir). */
+async function columnForReturn(tx: Queryable, task: Task): Promise<string> {
+  return pickColumn(await columnRepository.list(task.projectId, tx), { status: task.status, current: task.columnId }).id;
+}
+
+/**
+ * Reposiciona a tarefa no quadro e grava somente as linhas cujo status/coluna/posição mudaram.
  * Deve rodar dentro de transação, após `lockProject`.
  */
-async function reorder(tx: Queryable, projectId: string, moving: Task, toStatus: TaskStatus, toIndex: number) {
+async function reorder(tx: Queryable, projectId: string, moving: Task, toColumnId: string, toIndex: number) {
+  const columns = await columnRepository.list(projectId, tx);
   const before = (await taskRepository.listBoard(projectId, tx)).map(toTaskDTO);
   const base = before.some((t) => t.id === moving.id)
     ? before
-    : [...before, { ...moving, status: toStatus, position: Number.MAX_SAFE_INTEGER }];
-  const after = moveTask(base, moving.id, toStatus, toIndex);
+    : [...before, { ...moving, columnId: toColumnId, position: Number.MAX_SAFE_INTEGER }];
+  const after = moveToColumn(base, moving.id, toColumnId, toIndex, columns);
 
-  for (const task of diffOrder(before, after)) {
+  for (const task of diffColumnOrder(before, after)) {
     if (task.id === moving.id) {
       await taskRepository.update(
         task.id,
-        { position: task.position, status: task.status, completedAt: resolveCompletedAt(moving.status, task.status, moving.completedAt) },
+        {
+          position: task.position,
+          status: task.status,
+          columnId: task.columnId,
+          completedAt: resolveCompletedAt(moving.status, task.status, moving.completedAt),
+        },
         tx,
       );
     } else {
@@ -115,31 +152,37 @@ async function reorder(tx: Queryable, projectId: string, moving: Task, toStatus:
 
 async function insertTask(ctx: TaskContext, data: CreateTaskData & { projectId: string }, tx: Queryable): Promise<string> {
   let position: number;
+  let status = data.status;
+  let columnId: string | null = null;
   if (data.parentId) {
     const parent = await loadOrFail(ctx, data.parentId, tx);
     if (parent.parentId) throw new BadRequestError("Subtarefas não podem ter subtarefas");
     data = { ...data, projectId: parent.projectId };
     position = await taskRepository.countSubtasks(parent.id, tx);
   } else {
-    position = await taskRepository.countInColumn(data.projectId, data.status, tx);
+    const column = pickColumn(await columnRepository.list(data.projectId, tx), { columnId: data.columnId, status: data.status });
+    columnId = column.id;
+    status = column.category;
+    position = await taskRepository.countInColumn(column.id, tx);
   }
   const id = await taskRepository.create(
     {
       workspaceId: ctx.workspaceId,
       projectId: data.projectId,
+      columnId,
       parentId: data.parentId,
       userId: ctx.userId,
       title: data.title,
       description: data.description,
       priority: data.priority,
-      status: data.status,
+      status,
       position,
       startDate: data.startDate,
       dueDate: data.dueDate,
       dueTime: data.dueTime,
       estimateMinutes: data.estimateMinutes,
       recurrence: data.recurrence,
-      completedAt: data.status === "done" ? new Date() : null,
+      completedAt: status === "done" ? new Date() : null,
     },
     tx,
   );
@@ -259,7 +302,7 @@ export const taskService = {
       const current = await loadOrFail(ctx, id, tx);
       assertCanEdit(ctx, current);
 
-      const { status, position, projectId, assigneeIds, labelIds, expectedUpdatedAt, ...fields } = data;
+      const { status: requestedStatus, columnId, position, projectId, assigneeIds, labelIds, expectedUpdatedAt, ...fields } = data;
       if (expectedUpdatedAt && new Date(expectedUpdatedAt).getTime() !== new Date(current.updatedAt).getTime()) {
         throw new ConflictError("Esta tarefa foi alterada por outra pessoa. Recarregue para ver a versão mais recente.", "EDIT_CONFLICT");
       }
@@ -268,20 +311,28 @@ export const taskService = {
         .filter(([key, value]) => value !== undefined && value !== current[key as keyof Task])
         .map(([key]) => key);
 
+      // Status efetivo: a categoria da coluna de destino (coluna tem precedência sobre status).
+      let status = requestedStatus;
       if (projectId && projectId !== current.projectId) {
         if (!can(ctx.role, "tasks.edit")) throw new ForbiddenError();
         if (current.parentId) throw new BadRequestError("Mova a tarefa principal para mudar o projeto");
         await assertProject(ctx, projectId, tx);
         await taskRepository.lockProject(projectId, tx);
+        const target = pickColumn(await columnRepository.list(projectId, tx), { columnId, status: requestedStatus ?? current.status });
+        status = target.category;
         await taskRepository.update(id, { projectId }, tx);
         await tx.query(`UPDATE tasks SET project_id = $1 WHERE parent_id = $2`, [projectId, id]);
         await compactBoard(tx, current.projectId);
-        await reorder(tx, projectId, { ...current, projectId }, status ?? current.status, position ?? Number.MAX_SAFE_INTEGER);
+        await reorder(tx, projectId, { ...current, projectId, columnId: null }, target.id, position ?? Number.MAX_SAFE_INTEGER);
         changes.push("projectId");
-      } else if (!current.parentId && ((status !== undefined && status !== current.status) || position !== undefined)) {
-        await reorder(tx, current.projectId, current, status ?? current.status, position ?? Number.MAX_SAFE_INTEGER);
-      } else if (current.parentId && status !== undefined && status !== current.status) {
-        await taskRepository.update(id, { status, completedAt: resolveCompletedAt(current.status, status, current.completedAt) }, tx);
+      } else if (!current.parentId && (columnId !== undefined || (requestedStatus !== undefined && requestedStatus !== current.status) || position !== undefined)) {
+        const columns = await columnRepository.list(current.projectId, tx);
+        const target = pickColumn(columns, { columnId, status: requestedStatus ?? current.status, current: current.columnId });
+        status = target.category;
+        if (columnId !== undefined && columnId !== current.columnId) changes.push("columnId");
+        await reorder(tx, current.projectId, current, target.id, position ?? (target.id === current.columnId ? current.position : Number.MAX_SAFE_INTEGER));
+      } else if (current.parentId && requestedStatus !== undefined && requestedStatus !== current.status) {
+        await taskRepository.update(id, { status: requestedStatus, completedAt: resolveCompletedAt(current.status, requestedStatus, current.completedAt) }, tx);
       }
       if (status !== undefined && status !== current.status) changes.push("status");
 
@@ -372,7 +423,7 @@ export const taskService = {
       await tx.query(`UPDATE tasks SET deleted_at = NULL WHERE parent_id = $1 AND deleted_at = $2`, [id, current.deletedAt]);
       await taskRepository.update(id, { deletedAt: null }, tx);
       if (!current.parentId && !current.archivedAt) {
-        await reorder(tx, current.projectId, { ...current, deletedAt: null }, current.status, Number.MAX_SAFE_INTEGER);
+        await reorder(tx, current.projectId, { ...current, deletedAt: null }, await columnForReturn(tx, current), Number.MAX_SAFE_INTEGER);
       }
       await activityRepository.log(
         { workspaceId: ctx.workspaceId, actorId: ctx.userId, entityType: "task", entityId: id, projectId: current.projectId, action: "task.restored", data: { title: current.title } },
@@ -402,7 +453,7 @@ export const taskService = {
       await taskRepository.update(id, { archivedAt: archived ? new Date() : null }, tx);
       if (!current.parentId) {
         if (archived) await compactBoard(tx, current.projectId);
-        else await reorder(tx, current.projectId, { ...current, archivedAt: null }, current.status, Number.MAX_SAFE_INTEGER);
+        else await reorder(tx, current.projectId, { ...current, archivedAt: null }, await columnForReturn(tx, current), Number.MAX_SAFE_INTEGER);
       }
       await activityRepository.log(
         { workspaceId: ctx.workspaceId, actorId: ctx.userId, entityType: "task", entityId: id, projectId: current.projectId, action: archived ? "task.archived" : "task.unarchived", data: { title: current.title } },

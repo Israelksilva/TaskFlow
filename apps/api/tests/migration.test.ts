@@ -34,6 +34,15 @@ it("002 preserva usuários e tarefas existentes, criando workspace pessoal e pro
       { title: "A", status: "todo", position: 0, ws_name: "Espaço de Ana", project: "Minhas tarefas", role: "owner" },
       { title: "B", status: "todo", position: 1, ws_name: "Espaço de Ana", project: "Minhas tarefas", role: "owner" },
     ]);
+    // 003: cada tarefa existente aponta para a coluna da sua categoria, mantendo a posição.
+    const { rows: cols } = await db.query<{ title: string; category: string; name: string }>(
+      `SELECT t.title, c.category, c.name FROM tasks t JOIN project_columns c ON c.id = t.column_id ORDER BY t.title`,
+    );
+    expect(cols).toEqual([
+      { title: "A", category: "todo", name: "A Fazer" },
+      { title: "B", category: "todo", name: "A Fazer" },
+      { title: "C", category: "done", name: "Concluído" },
+    ]);
     // Idempotente: rodar de novo não aplica nada.
     expect(await migrate(db)).toEqual([]);
   } finally {

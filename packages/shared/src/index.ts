@@ -8,4 +8,5 @@ export * from "./schemas/workspace";
 export * from "./schemas/notification";
 export * from "./domain/dates";
 export * from "./domain/kanban";
+export * from "./domain/columns";
 export * from "./domain/password";

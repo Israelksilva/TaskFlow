@@ -2,6 +2,7 @@ import type { Invitation, Member, PlanId, Role, Team, Workspace } from "@andamo/
 import { db as defaultDb, type Queryable } from "../../db";
 import { randomToken } from "../../lib/crypto";
 import { toISO } from "../../shared/dates";
+import { columnRepository } from "../projects/column.repository";
 
 interface WorkspaceRow {
   id: string;
@@ -91,11 +92,12 @@ export const workspaceRepository = {
     const id = rows[0].id;
     await db.query(`INSERT INTO workspace_members (workspace_id, user_id, role) VALUES ($1, $2, 'owner')`, [id, data.ownerId]);
     if (data.personal) {
-      await db.query(
+      const { rows: project } = await db.query<{ id: string }>(
         `INSERT INTO projects (workspace_id, name, icon, owner_id, created_by, is_default)
-         VALUES ($1, 'Minhas tarefas', 'check-square', $2, $2, true)`,
+         VALUES ($1, 'Minhas tarefas', 'check-square', $2, $2, true) RETURNING id`,
         [id, data.ownerId],
       );
+      await columnRepository.createDefaults(project[0].id, db);
     }
     return id;
   },

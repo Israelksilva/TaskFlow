@@ -139,6 +139,8 @@ export interface Task {
   id: string;
   workspaceId: string;
   projectId: string;
+  /** Coluna do quadro (o status é a categoria dessa coluna). */
+  columnId: string | null;
   parentId: string | null;
   title: string;
   description: string | null;
@@ -152,6 +154,8 @@ export interface Task {
   /** Hora do prazo (HH:MM), opcional. */
   dueTime: string | null;
   estimateMinutes: number | null;
+  /** Tempo apontado (soma das entradas de tempo, em segundos). */
+  trackedSeconds: number;
   recurrence: Recurrence | null;
   assigneeIds: string[];
   labelIds: string[];
@@ -239,6 +243,30 @@ export interface NotificationPreferences {
   dndUntil: string | null;
   emailDigest: "instant" | "daily" | "weekly" | "off";
   reminderOffsets: number[];
+}
+
+export interface TimeEntry {
+  id: string;
+  workspaceId: string;
+  taskId: string;
+  taskTitle: string;
+  projectId: string;
+  user: UserSummary;
+  startedAt: string;
+  endedAt: string | null;
+  /** Para o cronômetro em andamento, é calculado até agora. */
+  durationSeconds: number;
+  note: string | null;
+  source: "timer" | "manual";
+}
+
+export interface TimeSummary {
+  totalSeconds: number;
+  byProject: Array<{ projectId: string; name: string; color: string; seconds: number }>;
+  byUser: Array<{ user: UserSummary; seconds: number }>;
+  /** Estimado × realizado por tarefa (tarefas com tempo ou estimativa no período). */
+  byTask: Array<{ taskId: string; projectId: string; title: string; estimateMinutes: number | null; trackedSeconds: number }>;
+  byDay: Array<{ date: string; seconds: number }>;
 }
 
 export interface Page<T> {

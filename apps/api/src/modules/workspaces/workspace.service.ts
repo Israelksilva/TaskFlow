@@ -18,6 +18,7 @@ import { activityRepository } from "../activity/activity.repository";
 import { audit } from "../audit/audit";
 import { queueEmail } from "../email/email.service";
 import { emailTemplates } from "../email/templates";
+import { columnRepository } from "../projects/column.repository";
 import { userRepository } from "../users/user.repository";
 import { workspaceRepository as repo } from "./workspace.repository";
 
@@ -56,11 +57,12 @@ export const workspaceService = {
   async create(userId: string, name: string): Promise<Workspace> {
     const id = await db.transaction(async (tx) => {
       const wsId = await repo.create({ name, ownerId: userId }, tx);
-      await tx.query(
+      const { rows } = await tx.query<{ id: string }>(
         `INSERT INTO projects (workspace_id, name, icon, owner_id, created_by, is_default)
-         VALUES ($1, 'Primeiro projeto', 'rocket', $2, $2, false)`,
+         VALUES ($1, 'Primeiro projeto', 'rocket', $2, $2, false) RETURNING id`,
         [wsId, userId],
       );
+      await columnRepository.createDefaults(rows[0].id, tx);
       return wsId;
     });
     await activityRepository.log({ workspaceId: id, actorId: userId, entityType: "workspace", entityId: id, action: "workspace.created", data: { name } });
