@@ -3,19 +3,31 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#6D5DFC" />
-    <title>Andamo — Seu trabalho em andamento</title>
+    <meta name="theme-color" content="#6D5DFC" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0F0E1A" media="(prefers-color-scheme: dark)" />
+    <title>Andamo — Organize seu trabalho. Conecte sua equipe. Faça acontecer.</title>
     <meta
       name="description"
-      content="Andamo: quadro de tarefas Kanban com arrastar e soltar, sincronizado na nuvem. Desenvolvido por Israel Alcantara."
+      content="Andamo é uma plataforma de gestão de projetos, tarefas e equipes: Kanban, calendário, notificações em tempo real, lembretes e colaboração. Comece grátis."
     />
-    <meta name="author" content="Israel Alcantara" />
+    <meta name="keywords" content="gestão de projetos, gestão de tarefas, kanban, produtividade, equipes, SaaS" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="apple-touch-icon" href="./icon.svg" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Andamo" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-    <meta property="og:title" content="Andamo — Seu trabalho em andamento" />
-    <meta property="og:description" content="Organize tarefas em um quadro Kanban moderno, rápido e acessível." />
     <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:site_name" content="Andamo" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:title" content="Andamo — Organize seu trabalho. Conecte sua equipe. Faça acontecer." />
+    <meta property="og:description" content="Projetos, tarefas, prazos e conversas num só lugar, com notificações que chegam na hora certa." />
+    <meta property="og:image" content="./og-image.svg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Andamo — gestão de projetos e tarefas" />
+    <meta name="twitter:description" content="Organize seu trabalho. Conecte sua equipe. Faça acontecer." />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -23,9 +35,15 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
+    <!-- Splash: evita o "flash" branco antes do React montar (respeita o tema do sistema). -->
+    <style>
+      html { background: #f7f7fc; }
+      @media (prefers-color-scheme: dark) { html { background: #0f0e1a; } }
+    </style>
   </head>
 
   <body>
+    <noscript>O Andamo precisa de JavaScript habilitado para funcionar.</noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Andamo — sem conexão</title>
+<style>
+  :root { color-scheme: light dark; --bg:#f7f7fc; --fg:#1b1a2e; --muted:#62627a; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0f0e1a; --fg:#ececf5; --muted:#a0a0b8; } }
+  body { margin:0; min-height:100vh; display:grid; place-items:center; background:var(--bg); color:var(--fg);
+         font:16px/1.5 Inter, system-ui, sans-serif; padding:16px; text-align:center; }
+  img { width:56px; height:56px; }
+  h1 { font-size:22px; margin:16px 0 4px; }
+  p { color:var(--muted); margin:0 0 20px; }
+  button { background:linear-gradient(135deg,#6D5DFC,#A646F0); color:#fff; border:0; border-radius:10px;
+           padding:10px 18px; font:600 15px Inter, system-ui, sans-serif; cursor:pointer; }
+</style>
+</head>
+<body>
+  <main>
+    <img src="icon.svg" alt="" />
+    <h1>Você está sem conexão</h1>
+    <p>Assim que a internet voltar, o Andamo continua de onde parou.</p>
+    <button onclick="location.reload()">Tentar novamente</button>
+  </main>
+</body>
+</html>

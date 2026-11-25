@@ -40,10 +40,9 @@ export function DeleteTaskDialog({ task, onCancel, onConfirm, returnFocus }: Del
         }}
       >
         <AlertDialogHeader>
-          <AlertDialogTitle>Excluir tarefa?</AlertDialogTitle>
+          <AlertDialogTitle>Mover para a lixeira?</AlertDialogTitle>
           <AlertDialogDescription>
-            A tarefa <strong className="font-medium text-foreground">“{shown?.title}”</strong> será excluída
-            permanentemente. Esta ação não pode ser desfeita.
+            A tarefa <strong className="font-medium text-foreground">“{shown?.title}”</strong> irá para a lixeira do workspace. Você pode restaurá-la depois.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -53,7 +52,7 @@ export function DeleteTaskDialog({ task, onCancel, onConfirm, returnFocus }: Del
             className={buttonVariants({ variant: "destructive" })}
             onClick={() => task && onConfirm(task)}
           >
-            Excluir tarefa
+            Mover para a lixeira
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

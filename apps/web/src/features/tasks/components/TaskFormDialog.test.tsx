@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Task } from "@andamo/shared";
+import { BoardScopeContext } from "../hooks";
 import { TaskFormDialog } from "./TaskFormDialog";
 
 const savedTask: Task = {
@@ -44,7 +45,9 @@ function setup(props: Partial<Parameters<typeof TaskFormDialog>[0]> = {}) {
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
-      <TaskFormDialog open onOpenChange={onOpenChange} {...props} />
+      <BoardScopeContext.Provider value={{ workspaceId: savedTask.workspaceId, projectId: savedTask.projectId }}>
+        <TaskFormDialog open onOpenChange={onOpenChange} {...props} />
+      </BoardScopeContext.Provider>
     </QueryClientProvider>,
   );
   return { onOpenChange, user: userEvent.setup() };

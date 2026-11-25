@@ -49,6 +49,11 @@
     --status-todo: 220 10% 46%;
     --status-doing: 247 82% 60%;
     --status-done: 152 60% 34%;
+
+    --sidebar: 240 30% 98.5%;
+    --sidebar-foreground: 228 18% 30%;
+    --sidebar-accent: 247 70% 95%;
+    --sidebar-border: 240 16% 91%;
   }
 
   .dark {
@@ -83,6 +88,11 @@
     --status-todo: 220 12% 62%;
     --status-doing: 248 96% 72%;
     --status-done: 152 50% 52%;
+
+    --sidebar: 240 24% 8.5%;
+    --sidebar-foreground: 225 14% 74%;
+    --sidebar-accent: 247 30% 17%;
+    --sidebar-border: 240 18% 15%;
   }
 }
 

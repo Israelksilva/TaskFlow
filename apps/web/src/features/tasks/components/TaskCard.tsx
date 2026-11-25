@@ -13,7 +13,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { plainText } from "@/lib/markdown";
 import { DueDateBadge, PriorityBadge } from "./TaskBadges";
+import { TaskCardMeta } from "./TaskCardMeta";
 import { STATUS_META } from "./task-meta";
 
 export interface TaskCardActions {
@@ -88,14 +90,14 @@ export const TaskCard = memo(function TaskCard({
               </span>
               <span className="sr-only">
                 {" "}
-                — status {STATUS_LABELS[task.status]}. Editar tarefa
+                — status {STATUS_LABELS[task.status]}. Abrir detalhes
               </span>
             </button>
           </h3>
 
           {task.description && (
             <p className="mt-1 line-clamp-2 text-[13px] leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">
-              {task.description}
+              {plainText(task.description)}
             </p>
           )}
 
@@ -103,6 +105,7 @@ export const TaskCard = memo(function TaskCard({
             <PriorityBadge priority={task.priority} />
             <DueDateBadge task={task} />
           </div>
+          <TaskCardMeta task={task} />
         </div>
 
         <DropdownMenu>
@@ -119,7 +122,7 @@ export const TaskCard = memo(function TaskCard({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuItem onSelect={() => onEdit(task, menuTriggerRef.current)}>
-              <Pencil className="mr-2 h-4 w-4" aria-hidden /> Editar
+              <Pencil className="mr-2 h-4 w-4" aria-hidden /> Abrir detalhes
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
@@ -146,7 +149,7 @@ export const TaskCard = memo(function TaskCard({
               className="text-destructive focus:bg-destructive/10 focus:text-destructive"
               onSelect={() => onDelete(task, menuTriggerRef.current)}
             >
-              <Trash2 className="mr-2 h-4 w-4" aria-hidden /> Excluir
+              <Trash2 className="mr-2 h-4 w-4" aria-hidden /> Mover para a lixeira
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

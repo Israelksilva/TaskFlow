@@ -1,6 +1,7 @@
 import type { ProjectStatus, Recurrence, TaskPriority, TaskStatus } from "./constants";
 import type { PlanId } from "./plans";
 import type { Role } from "./rbac";
+import type { NotificationCategory } from "./schemas/notification";
 
 /** Contratos (DTOs) trafegados pela API em JSON. Datas/horas são strings ISO 8601. */
 
@@ -231,7 +232,7 @@ export interface NotificationPreferences {
   push: boolean;
   email: boolean;
   sound: boolean;
-  mutedCategories: string[];
+  mutedCategories: NotificationCategory[];
   mutedProjects: string[];
   quietStart: string | null;
   quietEnd: string | null;

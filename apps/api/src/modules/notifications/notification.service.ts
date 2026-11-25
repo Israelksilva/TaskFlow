@@ -1,4 +1,12 @@
-import type { AppNotification, NotificationPreferences, NotificationPreferencesInput, Page, PushSubscriptionInput } from "@andamo/shared";
+import {
+  NOTIFICATION_CATEGORIES,
+  type AppNotification,
+  type NotificationCategory,
+  type NotificationPreferences,
+  type NotificationPreferencesInput,
+  type Page,
+  type PushSubscriptionInput,
+} from "@andamo/shared";
 import { db, type Queryable } from "../../db";
 import { enqueue } from "../../jobs/queue";
 import { registerJob } from "../../jobs/worker";
@@ -64,7 +72,7 @@ function toPrefsDTO(r: PrefsRow): NotificationPreferences {
     push: r.push,
     email: r.email,
     sound: r.sound,
-    mutedCategories: r.muted_categories,
+    mutedCategories: r.muted_categories.filter((c): c is NotificationCategory => (NOTIFICATION_CATEGORIES as readonly string[]).includes(c)),
     mutedProjects: r.muted_projects,
     quietStart: hhmm(r.quiet_start),
     quietEnd: hhmm(r.quiet_end),

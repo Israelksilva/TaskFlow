@@ -20,6 +20,8 @@ export interface TaskLike extends Orderable {
   description: string | null;
   priority: TaskPriority;
   dueDate: string | null;
+  assigneeIds?: string[];
+  labelIds?: string[];
 }
 
 const statusIndex = (status: TaskStatus) => TASK_STATUSES.indexOf(status);
@@ -107,6 +109,8 @@ export interface TaskFilters {
   search?: string;
   priority?: TaskPriority | "all";
   onlyOverdue?: boolean;
+  assigneeId?: string;
+  labelId?: string;
 }
 
 /** Normaliza texto para busca sem diferenciar acentos e maiúsculas. */
@@ -129,6 +133,8 @@ export function filterTasks<T extends TaskLike>(
       return false;
     }
     if (filters.onlyOverdue && !isTaskOverdue(task, today)) return false;
+    if (filters.assigneeId && !task.assigneeIds?.includes(filters.assigneeId)) return false;
+    if (filters.labelId && !task.labelIds?.includes(filters.labelId)) return false;
     if (term) {
       const haystack = normalizeText(`${task.title} ${task.description ?? ""}`);
       if (!haystack.includes(term)) return false;
@@ -141,7 +147,9 @@ export function hasActiveFilters(filters: TaskFilters): boolean {
   return Boolean(
     filters.search?.trim() ||
       (filters.priority && filters.priority !== "all") ||
-      filters.onlyOverdue,
+      filters.onlyOverdue ||
+      filters.assigneeId ||
+      filters.labelId,
   );
 }
 

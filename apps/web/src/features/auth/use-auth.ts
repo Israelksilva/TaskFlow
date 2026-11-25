@@ -9,7 +9,9 @@ export interface AuthContextValue {
   user: User | null;
   /** Salva a sessão retornada por login/cadastro. */
   startSession: (auth: AuthResponse) => void;
-  logout: () => void;
+  /** Atualiza o usuário em cache (ex.: após editar o perfil). */
+  setUser: (user: User) => void;
+  logout: () => Promise<void>;
   retry: () => void;
   error: unknown;
 }

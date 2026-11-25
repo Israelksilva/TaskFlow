@@ -18,12 +18,27 @@ export default defineConfig(({ mode }) => {
         "/api": {
           target: env.API_PROXY_TARGET || "http://localhost:3333",
           changeOrigin: true,
+          ws: true, // WebSocket do tempo real (/v1/realtime)
           rewrite: (p) => p.replace(/^\/api/, ""),
         },
       },
     },
 
     plugins: [react()],
+
+    build: {
+      rollupOptions: {
+        output: {
+          // Bibliotecas estáveis em chunks próprios: melhor cache entre deploys.
+          manualChunks: {
+            react: ["react", "react-dom", "react-router-dom"],
+            query: ["@tanstack/react-query"],
+            radix: ["@radix-ui/react-dialog", "@radix-ui/react-dropdown-menu", "@radix-ui/react-select", "@radix-ui/react-popover", "@radix-ui/react-tooltip", "@radix-ui/react-tabs"],
+            dnd: ["@dnd-kit/core", "@dnd-kit/sortable", "@dnd-kit/utilities"],
+          },
+        },
+      },
+    },
 
     resolve: {
       alias: {

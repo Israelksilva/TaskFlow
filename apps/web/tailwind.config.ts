@@ -65,13 +65,25 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          accent: "hsl(var(--sidebar-accent))",
+          border: "hsl(var(--sidebar-border))",
+        },
         status: {
           todo: "hsl(var(--status-todo))",
           doing: "hsl(var(--status-doing))",
           done: "hsl(var(--status-done))",
         },
               },
+      boxShadow: {
+        card: "0 1px 2px hsl(240 30% 20% / 0.04), 0 1px 1px hsl(240 30% 20% / 0.03)",
+        elevated: "0 12px 32px -8px hsl(240 40% 20% / 0.18), 0 2px 6px hsl(240 40% 20% / 0.06)",
+        glow: "0 8px 30px -6px hsl(var(--primary) / 0.45)",
+      },
       borderRadius: {
+        xl: "calc(var(--radius) + 4px)",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
@@ -97,6 +109,8 @@ export default {
           "0%": { opacity: "0", transform: "translateY(6px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        "slide-in-right": { "0%": { transform: "translateX(100%)" }, "100%": { transform: "translateX(0)" } },
+        shimmer: { "0%": { backgroundPosition: "-200% 0" }, "100%": { backgroundPosition: "200% 0" } },
         "pop-in": {
           "0%": { opacity: "0", transform: "scale(0.96)" },
           "100%": { opacity: "1", transform: "scale(1)" },
@@ -107,6 +121,8 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.3s ease-out",
         "pop-in": "pop-in 0.2s ease-out",
+        "slide-in-right": "slide-in-right 0.25s cubic-bezier(0.32,0.72,0,1)",
+        shimmer: "shimmer 1.6s linear infinite",
       },
     },
   },

@@ -1,4 +1,4 @@
-import webpush from "web-push";
+import * as webpush from "web-push";
 import { env, integrations, isTest } from "../config/env";
 
 if (integrations.push) {

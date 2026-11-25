@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { AlertTriangle, Search, X } from "lucide-react";
-import { PRIORITY_LABELS, TASK_PRIORITIES, type TaskFilters, type TaskPriority } from "@andamo/shared";
+import { PRIORITY_LABELS, TASK_PRIORITIES, type Label as TaskLabel, type Member, type TaskFilters, type TaskPriority } from "@andamo/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,10 +13,12 @@ interface TaskToolbarProps {
   active: boolean;
   visibleCount: number;
   totalCount: number;
+  members?: Array<Pick<Member, "id" | "name">>;
+  labels?: TaskLabel[];
 }
 
 export const TaskToolbar = forwardRef<HTMLInputElement, TaskToolbarProps>(
-  ({ filters, onChange, active, visibleCount, totalCount }, searchRef) => (
+  ({ filters, onChange, active, visibleCount, totalCount, members, labels }, searchRef) => (
     <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center" role="search">
       <div className="relative sm:w-64">
         <Label htmlFor="task-search" className="sr-only">
@@ -72,6 +74,37 @@ export const TaskToolbar = forwardRef<HTMLInputElement, TaskToolbarProps>(
           <AlertTriangle aria-hidden /> Atrasadas
         </Button>
       </div>
+
+      {members && members.length > 1 && (
+        <Select value={filters.assigneeId ?? "all"} onValueChange={(v) => onChange({ ...filters, assigneeId: v === "all" ? undefined : v })}>
+          <SelectTrigger className="h-9 w-full sm:w-44" aria-label="Filtrar por responsável">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os responsáveis</SelectItem>
+            {members.map((m) => (
+              <SelectItem key={m.id} value={m.id}>
+                {m.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+      {labels && labels.length > 0 && (
+        <Select value={filters.labelId ?? "all"} onValueChange={(v) => onChange({ ...filters, labelId: v === "all" ? undefined : v })}>
+          <SelectTrigger className="h-9 w-full sm:w-40" aria-label="Filtrar por etiqueta">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as etiquetas</SelectItem>
+            {labels.map((l) => (
+              <SelectItem key={l.id} value={l.id}>
+                {l.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
 
       {active && (
         <div className="flex items-center gap-2 sm:ml-auto">
