@@ -77,6 +77,29 @@ GitHub Pages em `/TaskFlow/` (por isso `HashRouter` e `base` no Vite). O plano f
 - **Acessibilidade:** `e2e/a11y.spec.ts` roda axe (WCAG 2.2 A/AA) em login, cadastro, quadro, modal,
   paleta e design system, nos temas claro e escuro.
 
+### 1.3 Mudanças da Fase 3
+
+- **Rotas:** landing pública em `/`; app movido para `/app` (`/app/design-system`); `/design-system`
+  redireciona. `GuestOnly` devolve o usuário à rota protegida de origem após o login.
+- **Landing** (`pages/public/`): `PublicLayout` (navbar, menu no celular, rodapé), `LandingPage`
+  (hero, funcionalidades, demonstração com capturas reais, pilares com selo Disponível/Em
+  desenvolvimento, benefícios, planos do `§23` "em breve", FAQ, contato), `LegalPage` (privacidade e
+  termos, rascunhos). Navegação por seção com botões + `scrollIntoView` (o `#` pertence ao roteador).
+- **Capturas:** `public/screens/*.webp` geradas do sistema real com tarefas de exemplo de uma conta de
+  desenvolvimento; `public/og-image.png` (1200×630).
+- **Contato:** migração aditiva `002_create_contact_messages.sql`; `POST /v1/contato` com
+  `contactSchema` (shared), campo-isca, tempo mínimo de preenchimento (3 s) e limite por IP
+  (`CONTACT_LIMIT_PER_HOUR`, padrão 5). Envio de e-mail de aviso fica para a Fase 6; leitura das
+  mensagens, para o painel administrativo.
+- **SEO e segurança no build:** plugin `siteMeta` no `vite.config.ts` injeta a CSP (só no build),
+  substitui `%SITE_URL%` (`VITE_SITE_URL`) e gera `sitemap.xml` e `robots.txt`. Open Graph, Twitter
+  Card e JSON-LD no `index.html`. Fontes Inter e Plus Jakarta Sans servidas pelo próprio site
+  (`@fontsource`), sem Google Fonts.
+- **Login/cadastro:** painel violeta dividido com a captura real do quadro (referências visuais
+  enviadas pelo Israel em 25/11/2026).
+- **Limites configuráveis:** `AUTH_LIMIT_PER_15MIN` (padrão 20) e `CONTACT_LIMIT_PER_HOUR`; o E2E
+  usa valores altos.
+
 ## 2. Princípios
 
 1. **Preservar o que funciona.** Migrações novas (nunca editar antigas), migração de dados testada,
@@ -224,7 +247,7 @@ src/
 - **Design system (`§2`):** os tokens CSS (HSL) que já existem viram a única fonte de cor, tipografia e
   movimento, com página interna de referência. Violeta/coral como base; Plus Jakarta Sans + Inter;
   ícones Lucide; WCAG 2.2 AA (contraste, foco visível, alvos ≥ 24 px, teclado).
-- **Roteamento:** `/app/:ws/...`; tipo de roteador conforme ADR-002.
+- **Roteamento:** `HashRouter` (ADR-002): landing em `/`, app em `/#/app/...` (multiempresa: `/#/app/:ws/...`).
 - **Estado do servidor:** React Query com chaves por workspace; eventos do Socket.IO atualizam o cache.
 - **Quadro:** componentes e mutações otimistas atuais reaproveitados; viram uma das visões do projeto
   (Kanban, lista, tabela, calendário, timeline, Gantt).
@@ -255,7 +278,7 @@ src/
 | #       | Decisão                                                                                                                                | Status                                                       |
 | ------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
 | ADR-001 | Um nível de inquilino: workspace = organização; equipes e projetos dentro dele.                                                        | Proposta                                                     |
-| ADR-002 | Front fora do GitHub Pages (Cloudflare Pages ou Vercel) com `BrowserRouter`, para SEO/Open Graph por página e cabeçalhos de segurança. | **Aguardando decisão** (bloqueia a Fase 3)                   |
+| ADR-002 | Front continua no GitHub Pages com `HashRouter` (decisão do Israel, 25/11/2026). CSP via `<meta>`; só a raiz é indexável; sem HSTS/headers HTTP próprios. Reavaliar junto com o domínio (ADR-003). | **Aceito** — limitações em SECURITY S-07 |
 | ADR-003 | Domínio próprio com `app.` e `api.` no mesmo site (cookies `SameSite=Lax`).                                                            | Aguardando domínio (bloqueia a Fase 4)                       |
 | ADR-004 | E-mail transacional: Resend, atrás da interface `Mailer`; templates em React Email.                                                    | Proposta (`§11` prefere Resend)                              |
 | ADR-005 | Arquivos: Cloudflare R2 (compatível com S3) com URL assinada.                                                                          | Proposta                                                     |
