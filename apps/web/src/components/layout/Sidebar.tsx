@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
+  BarChart3,
   CalendarDays,
   Check,
   ChevronsUpDown,
@@ -164,6 +165,7 @@ export function Sidebar({
     { to: `${base}/projetos`, label: "Projetos", icon: FolderKanban, end: true },
     { to: `${base}/calendario`, label: "Calendário", icon: CalendarDays },
     { to: `${base}/tempo`, label: "Controle de tempo", icon: Timer },
+    { to: `${base}/relatorios`, label: "Relatórios", icon: BarChart3 },
     { to: `${base}/equipe`, label: "Equipe", icon: Users },
   ];
   const footer: NavItem[] = [

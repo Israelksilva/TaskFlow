@@ -269,6 +269,51 @@ export interface TimeSummary {
   byDay: Array<{ date: string; seconds: number }>;
 }
 
+/** Indicadores de um período. */
+export interface ReportTotals {
+  created: number;
+  completed: number;
+  /** Abertas com prazo vencido ao fim do período. */
+  overdue: number;
+  /** Concluídas no período / (concluídas + ainda abertas criadas até o fim do período), 0–100. */
+  completionRate: number;
+  /** Média de horas entre criação e conclusão (tarefas concluídas no período). */
+  avgCompletionHours: number | null;
+  /** % das concluídas com prazo que terminaram até o prazo. */
+  onTimeRate: number | null;
+  trackedSeconds: number;
+}
+
+export interface ReportData {
+  period: { from: string; to: string };
+  previous: { from: string; to: string };
+  totals: ReportTotals;
+  previousTotals: ReportTotals;
+  granularity: "day" | "week";
+  series: Array<{ bucket: string; created: number; completed: number; trackedSeconds: number }>;
+  byProject: Array<{
+    projectId: string;
+    name: string;
+    color: string;
+    open: number;
+    completed: number;
+    overdue: number;
+    avgCompletionHours: number | null;
+    trackedSeconds: number;
+  }>;
+  byPerson: Array<{
+    user: UserSummary;
+    open: number;
+    completed: number;
+    overdue: number;
+    trackedSeconds: number;
+    /** Soma das estimativas das tarefas abertas (minutos) — carga de trabalho. */
+    openEstimateMinutes: number;
+    capacityHours: number | null;
+  }>;
+  byPriority: Array<{ priority: string; open: number; completed: number }>;
+}
+
 export interface Page<T> {
   items: T[];
   nextCursor: string | null;

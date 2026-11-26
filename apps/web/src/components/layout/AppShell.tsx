@@ -120,9 +120,11 @@ export function AppShell() {
         <a href="#conteudo" className="sr-only z-50 rounded bg-primary px-3 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:left-3 focus:top-3">
           Pular para o conteúdo
         </a>
-        <div className="flex h-screen overflow-hidden bg-background">
+        <div className="flex h-screen overflow-hidden bg-background print:block print:h-auto print:overflow-visible">
           {isDesktop ? (
+            <div className="print:hidden">
             <Sidebar {...sidebarProps} collapsed={collapsed} onToggle={toggleCollapsed} />
+            </div>
           ) : (
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetContent side="left" className="w-64 p-0" hideClose aria-describedby={undefined}>
@@ -145,7 +147,7 @@ export function AppShell() {
                 <WifiOff className="h-3.5 w-3.5" aria-hidden /> Você está offline. Alterações serão possíveis assim que a conexão voltar.
               </div>
             )}
-            <main id="conteudo" tabIndex={-1} className="scrollbar-thin flex-1 overflow-y-auto focus:outline-none">
+            <main id="conteudo" tabIndex={-1} className="scrollbar-thin flex-1 overflow-y-auto focus:outline-none print:overflow-visible">
               <Outlet />
             </main>
           </div>

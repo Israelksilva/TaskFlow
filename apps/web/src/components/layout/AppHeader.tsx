@@ -61,7 +61,7 @@ export function AppHeader({
   const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-card/80 px-3 backdrop-blur supports-[backdrop-filter]:bg-card/70 sm:px-5">
+    <header className="sticky top-0 z-30 flex h-14 print:hidden items-center gap-2 border-b bg-card/80 px-3 backdrop-blur supports-[backdrop-filter]:bg-card/70 sm:px-5">
       <Button variant="ghost" size="icon" className="h-9 w-9 lg:hidden" onClick={onMenu} aria-label="Abrir menu">
         <Menu className="h-5 w-5" />
       </Button>

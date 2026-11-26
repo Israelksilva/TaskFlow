@@ -118,6 +118,17 @@ export const dashboardQuerySchema = z.object({
   assigneeId: uuidSchema.optional(),
 });
 
+/** Relatórios: período livre (até 1 ano) comparado automaticamente com o período anterior de mesma duração. */
+export const reportQuerySchema = z
+  .object({
+    from: dueDateSchema,
+    to: dueDateSchema,
+    projectId: uuidSchema.optional(),
+    assigneeId: uuidSchema.optional(),
+  })
+  .refine((q) => q.to >= q.from, { path: ["to"], message: "O fim deve ser depois do início" })
+  .refine((q) => (Date.parse(q.to) - Date.parse(q.from)) / 864e5 <= 366, { path: ["to"], message: "Período máximo de 1 ano" });
+
 export const searchQuerySchema = z.object({
   q: z.string().trim().min(2, "Digite ao menos 2 caracteres").max(100),
 });
@@ -136,3 +147,4 @@ export type LabelInput = z.input<typeof labelSchema>;
 export type CreateProjectInput = z.input<typeof createProjectSchema>;
 export type UpdateProjectInput = z.input<typeof updateProjectSchema>;
 export type DashboardQuery = z.input<typeof dashboardQuerySchema>;
+export type ReportQuery = z.input<typeof reportQuerySchema>;

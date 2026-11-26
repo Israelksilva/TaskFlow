@@ -8,6 +8,7 @@ import {
   deleteColumnSchema,
   manualTimeSchema,
   reorderColumnsSchema,
+  reportQuerySchema,
   startTimerSchema,
   timeQuerySchema,
   updateColumnSchema,
@@ -34,6 +35,7 @@ import { commentService } from "../comments/comment.service";
 import { dashboardService } from "../dashboard/dashboard.service";
 import { columnService } from "../projects/column.service";
 import { projectService, type ProjectContext } from "../projects/project.service";
+import { reportService } from "../reports/report.service";
 import { timeService } from "../time/time.service";
 import { taskRoutes } from "../tasks/task.routes";
 import type { TaskContext } from "../tasks/task.service";
@@ -89,6 +91,9 @@ w.post("/transferir", authorize("workspace.transfer"), async (req, res) => {
 w.get("/dashboard", async (req, res) => {
   const q = parse(dashboardQuerySchema, req.query);
   res.json(await dashboardService.get(getMembership(req).workspaceId, getUserId(req), q));
+});
+w.get("/relatorios", async (req, res) => {
+  res.json(await reportService.get(wsCtx(req), parse(reportQuerySchema, req.query)));
 });
 w.get("/busca", async (req, res) => {
   const { q } = parse(searchQuerySchema, req.query);

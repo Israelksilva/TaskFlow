@@ -13,6 +13,8 @@ import type {
   Member,
   Page,
   Project,
+  ReportData,
+  ReportQuery,
   Role,
   SearchResults,
   Team,
@@ -37,6 +39,7 @@ export const workspacesApi = {
     apiRequest<{ workspace: Workspace }>(`${ws(id)}/transferir`, { method: "POST", body: { userId } }).then((r) => r.workspace),
 
   dashboard: (id: string, q: DashboardQuery) => apiRequest<DashboardData>(`${ws(id)}/dashboard`, { query: { ...q } }),
+  report: (id: string, q: ReportQuery) => apiRequest<ReportData>(`${ws(id)}/relatorios`, { query: { ...q } }),
   search: (id: string, q: string, signal?: AbortSignal) => apiRequest<SearchResults>(`${ws(id)}/busca`, { query: { q }, signal }),
   activity: (id: string, cursor?: string, projectId?: string) =>
     apiRequest<Page<Activity>>(`${ws(id)}/atividades`, { query: { cursor, projectId } }),
