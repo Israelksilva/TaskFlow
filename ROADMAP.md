@@ -249,8 +249,10 @@ usuários, tarefas e vínculos antes × depois. Simulação local (001 + dados �
   tarefas antigas aparecem nas colunas e na ordem esperadas. **Validação das migrações concluída.**
 - Registros (só ids e hashes): `apps/api/.validacao-neon/` (fora do git).
 Produção continua sem as migrações: aplicar só com autorização explícita, com backup/branch da produção antes.
-**Nova migração 006** (assinaturas e arquivos, aditiva): validada na simulação local (001 + dados → 002..006);
-ainda não aplicada na branch de teste do Neon — aguarda autorização.
+**Migração 006** (assinaturas e arquivos, aditiva): aplicada em 27/11/2026 na mesma branch de teste, com autorização,
+sozinha (002–005 já estavam). Antes × depois: 4 usuários e 15 tarefas (inclui a conta e a tarefa de validação),
+10 de 10 verificações ✅; tabelas novas vazias. App ligado à cópia: login, quadro, assinatura (indisponível, sem
+credencial) e uso de armazenamento respondendo. **A branch de teste está com 001–006; a produção segue só com 001.**
 
 ## Próximos passos sugeridos (próxima sessão)
 1. Revisar e autorizar: `git push` da branch + deploy (as migrações 002 a 005 rodam no Neon no start do
