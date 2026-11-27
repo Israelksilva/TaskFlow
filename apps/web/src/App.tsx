@@ -13,6 +13,11 @@ import { queryClient } from "@/lib/query-client";
 const TasksPage = lazy(() => import("@/features/tasks/pages/TasksPage"));
 const LoginPage = lazy(() => import("@/features/auth/pages/LoginPage"));
 const RegisterPage = lazy(() => import("@/features/auth/pages/RegisterPage"));
+const ForgotPasswordPage = lazy(() => import("@/features/auth/pages/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("@/features/auth/pages/ResetPasswordPage"));
+const VerifyEmailPage = lazy(() => import("@/features/auth/pages/VerifyEmailPage"));
+const GoogleCallbackPage = lazy(() => import("@/features/auth/pages/GoogleCallbackPage"));
+const SettingsPage = lazy(() => import("@/features/account/pages/SettingsPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const DesignSystemPage = lazy(() => import("@/pages/DesignSystemPage"));
 const LandingPage = lazy(() => import("@/pages/public/LandingPage"));
@@ -37,6 +42,7 @@ export default function App() {
                   <Route element={<RequireAuth />}>
                     <Route element={<AppShell />}>
                       <Route path="/app" element={<TasksPage />} />
+                      <Route path="/app/configuracoes" element={<SettingsPage />} />
                       <Route path="/app/design-system" element={<DesignSystemPage />} />
                     </Route>
                   </Route>
@@ -45,7 +51,12 @@ export default function App() {
                   <Route element={<GuestOnly />}>
                     <Route path="/entrar" element={<LoginPage />} />
                     <Route path="/cadastro" element={<RegisterPage />} />
+                    <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
                   </Route>
+                  {/* Links de e-mail e volta do Google: funcionam logado ou não */}
+                  <Route path="/redefinir-senha" element={<ResetPasswordPage />} />
+                  <Route path="/verificar-email" element={<VerifyEmailPage />} />
+                  <Route path="/entrar/google" element={<GoogleCallbackPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

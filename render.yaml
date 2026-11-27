@@ -20,8 +20,22 @@ services:
         sync: false # cole a connection string do Neon no painel
       - key: JWT_SECRET
         generateValue: true
-      - key: JWT_EXPIRES_IN
-        value: 7d
+      - key: ACCESS_TOKEN_TTL_MIN
+        value: "15"
+      - key: DATA_ENCRYPTION_KEY
+        sync: false # 64 caracteres hex; cifra os segredos de 2FA
+      - key: APP_URL
+        sync: false # ex.: https://seu-usuario.github.io/TaskFlow/ (links dos e-mails)
+      - key: API_PUBLIC_URL
+        sync: false # ex.: https://andamo-api.onrender.com (retorno do Google)
+      - key: RESEND_API_KEY
+        sync: false # opcional: sem ela, nenhum e-mail é enviado
+      - key: MAIL_FROM
+        sync: false # ex.: Andamo <nao-responda@seu-dominio.com>
+      - key: GOOGLE_CLIENT_ID
+        sync: false # opcional: sem ela, o login com Google fica oculto
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
       - key: CORS_ORIGIN
         sync: false # ex.: https://seu-usuario.github.io
       - key: LOG_LEVEL

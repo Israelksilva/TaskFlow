@@ -12,7 +12,23 @@ const envSchema = z
         "Use postgresql://... (Neon) ou pglite://... (Postgres embutido para desenvolvimento)",
       ),
     JWT_SECRET: z.string().min(32, "JWT_SECRET deve ter ao menos 32 caracteres"),
-    JWT_EXPIRES_IN: z.string().default("7d"),
+    /** Validade do token de acesso, em minutos. A sessão continua pelo refresh token. */
+    ACCESS_TOKEN_TTL_MIN: z.coerce.number().int().min(1).max(60).default(15),
+    /** Endereço público do front (links de e-mail e retorno do Google). Termina com "/". */
+    APP_URL: z.url().default("http://localhost:8080/"),
+    /** Endereço público da API (callback do Google). */
+    API_PUBLIC_URL: z.url().default("http://localhost:3333"),
+    /** Chave (64 caracteres hex) para cifrar segredos de 2FA. Sem ela, é derivada do JWT_SECRET. */
+    DATA_ENCRYPTION_KEY: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/i, "DATA_ENCRYPTION_KEY deve ter 64 caracteres hexadecimais")
+      .optional(),
+    /** E-mail transacional (Resend). Sem as duas, os e-mails só aparecem no log de desenvolvimento. */
+    RESEND_API_KEY: z.string().min(1).optional(),
+    MAIL_FROM: z.string().min(3).optional(),
+    /** Login com Google (OAuth). Sem as duas, o botão não aparece. */
+    GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+    GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
     CORS_ORIGIN: z
       .string()
       .default("http://localhost:8080")
@@ -60,3 +76,5 @@ if (!parsed.success) {
 export const env = parsed.data;
 export const isProduction = env.NODE_ENV === "production";
 export const isTest = env.NODE_ENV === "test";
+export const emailEnabled = Boolean(env.RESEND_API_KEY && env.MAIL_FROM);
+export const googleEnabled = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);

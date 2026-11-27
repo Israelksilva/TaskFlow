@@ -48,8 +48,19 @@ function Privacy() {
       <Section title="2. Quais dados coletamos">
         <ul>
           <li>
-            <strong>Conta:</strong> nome, e-mail e senha. A senha é armazenada apenas como hash
-            bcrypt — nunca em texto.
+            <strong>Conta:</strong> nome, e-mail, senha, idioma e fuso horário. A senha é
+            armazenada apenas como hash bcrypt — nunca em texto. Se você ativar a verificação em
+            duas etapas, a chave do app autenticador fica cifrada e os códigos de recuperação, só
+            como hash.
+          </li>
+          <li>
+            <strong>Login com Google (opcional):</strong> se você escolher entrar com o Google,
+            recebemos dele seu nome, e-mail e um identificador da conta Google. Não acessamos
+            contatos, arquivos nem outros dados da sua conta Google.
+          </li>
+          <li>
+            <strong>Sessões:</strong> para cada dispositivo conectado guardamos navegador, endereço
+            IP e datas de uso, para você poder ver e encerrar suas sessões.
           </li>
           <li>
             <strong>Conteúdo:</strong> as tarefas que você cria (título, descrição, prioridade,
@@ -65,7 +76,7 @@ function Privacy() {
             e tokens não são registrados.
           </li>
           <li>
-            <strong>No seu navegador:</strong> o token de sessão, sua preferência de tema e o estado
+            <strong>No seu navegador:</strong> o token de renovação da sessão, sua preferência de tema e o estado
             do menu lateral ficam no armazenamento local do navegador. Não usamos cookies de
             rastreamento, publicidade ou ferramentas de análise de terceiros.
           </li>

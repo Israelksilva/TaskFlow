@@ -40,3 +40,15 @@ export class ConflictError extends AppError {
     super(409, code, message);
   }
 }
+
+export class TooManyRequestsError extends AppError {
+  constructor(message = "Muitas tentativas. Tente novamente mais tarde.", code = "TOO_MANY_REQUESTS") {
+    super(429, code, message);
+  }
+}
+
+export class ServiceUnavailableError extends AppError {
+  constructor(message: string, code = "SERVICE_UNAVAILABLE") {
+    super(503, code, message);
+  }
+}

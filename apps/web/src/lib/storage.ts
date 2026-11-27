@@ -1,7 +1,7 @@
 /**
  * Acesso seguro ao localStorage (pode falhar em modo privado ou com cookies bloqueados).
  */
-function createStorageItem(key: string) {
+export function createStorageItem(key: string) {
   return {
     get(): string | null {
       try {
@@ -27,5 +27,4 @@ function createStorageItem(key: string) {
   };
 }
 
-export const tokenStorage = createStorageItem("andamo:token");
 export const lastBoardStorage = createStorageItem("andamo:last-board");

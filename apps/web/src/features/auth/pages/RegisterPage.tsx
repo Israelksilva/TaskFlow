@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/button";
 import { InlineError } from "@/components/feedback/InlineError";
 import { ApiError, getErrorMessage } from "@/lib/api-client";
 import { authApi } from "../api";
-import { useAuth } from "../use-auth";
+import { useAuth, useAuthConfig } from "../use-auth";
 import { AuthLayout } from "../components/AuthLayout";
 import { FormField } from "../components/FormField";
+import { PasswordField } from "../components/PasswordField";
+import { Divider, GoogleButton, RememberCheckbox } from "../components/AuthExtras";
 
 const formSchema = registerSchema
   .extend({ confirmPassword: z.string().min(1, "Confirme a senha") })
@@ -20,14 +22,16 @@ const formSchema = registerSchema
     message: "As senhas não conferem",
   });
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.output<typeof formSchema>;
 
 export default function RegisterPage() {
   const { startSession } = useAuth();
-  const form = useForm<FormValues>({
+  const config = useAuthConfig();
+  const form = useForm<z.input<typeof formSchema>, unknown, FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: { name: "", email: "", password: "", confirmPassword: "", remember: false },
   });
+  const [password, name, email, remember] = form.watch(["password", "name", "email", "remember"]);
   const register = useMutation({
     mutationFn: authApi.register,
     onSuccess: startSession,
@@ -40,7 +44,8 @@ export default function RegisterPage() {
   });
   const { errors } = form.formState;
   const showGenericError =
-    register.isError && !(register.error instanceof ApiError && register.error.code === "EMAIL_IN_USE");
+    register.isError &&
+    !(register.error instanceof ApiError && register.error.code === "EMAIL_IN_USE");
 
   return (
     <AuthLayout
@@ -62,22 +67,38 @@ export default function RegisterPage() {
           ({ confirmPassword: _c, ...values }) => !register.isPending && register.mutate(values),
         )}
       >
-        <FormField label="Nome" autoComplete="name" autoFocus error={errors.name?.message} {...form.register("name")} />
-        <FormField label="E-mail" type="email" autoComplete="email" error={errors.email?.message} {...form.register("email")} />
         <FormField
+          label="Nome"
+          autoComplete="name"
+          autoFocus
+          error={errors.name?.message}
+          {...form.register("name")}
+        />
+        <FormField
+          label="E-mail"
+          type="email"
+          autoComplete="email"
+          error={errors.email?.message}
+          {...form.register("email")}
+        />
+        <PasswordField
           label="Senha"
-          type="password"
           autoComplete="new-password"
           hint={`Mínimo de ${LIMITS.passwordMin} caracteres, com letras e números.`}
+          strengthOf={password}
+          strengthContext={[name, email.split("@")[0] ?? ""]}
           error={errors.password?.message}
           {...form.register("password")}
         />
-        <FormField
+        <PasswordField
           label="Confirmar senha"
-          type="password"
           autoComplete="new-password"
           error={errors.confirmPassword?.message}
           {...form.register("confirmPassword")}
+        />
+        <RememberCheckbox
+          checked={remember ?? false}
+          onChange={(v) => form.setValue("remember", v)}
         />
 
         {showGenericError && <InlineError>{getErrorMessage(register.error)}</InlineError>}
@@ -87,6 +108,13 @@ export default function RegisterPage() {
           {register.isPending ? "Criando conta…" : "Criar conta"}
         </Button>
       </form>
+
+      {config.data?.googleEnabled && (
+        <div className="mt-6 space-y-4">
+          <Divider>ou</Divider>
+          <GoogleButton remember={remember ?? false} />
+        </div>
+      )}
     </AuthLayout>
   );
 }

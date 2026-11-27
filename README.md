@@ -39,6 +39,10 @@ Tipografia: **Plus Jakarta Sans** (títulos) e **Inter** (texto). Arquivos em [`
 ## Funcionalidades
 
 - Cadastro/login; cada usuário vê apenas as próprias tarefas
+- Sessão renovada automaticamente, "manter conectado", sessões ativas e encerrar outras
+- Verificação em duas etapas (app autenticador + códigos de recuperação), força da senha e mostrar/ocultar
+- Verificação de e-mail e recuperação de senha (com e-mail configurado); login com Google (com credenciais configuradas)
+- Configurações da conta: nome, fuso, tema, senha, segurança e sessões
 - Quadro com colunas **A Fazer**, **Em Progresso** e **Concluído**
 - Criar, editar (PATCH parcial), excluir (com confirmação) e mover tarefas
 - Mover por **arrastar e soltar** (mouse, toque e teclado) ou pelo menu **⋯ → Mover para**
@@ -79,13 +83,26 @@ packages/
 
 ## API
 
-Todas as rotas de tarefas exigem `Authorization: Bearer <token>`.
+Rotas de tarefas e de conta exigem `Authorization: Bearer <accessToken>` (15 min). O front renova com
+`POST /auth/sessao/renovar` usando o `refreshToken`, que muda a cada renovação. Documentação completa em
+`/docs` (OpenAPI) com a API rodando.
 
 | Método | Rota | Descrição | Respostas |
 |---|---|---|---|
-| POST | `/auth/cadastro` | Cria conta | 201, 409, 422 |
-| POST | `/auth/login` | Autentica | 200, 401, 422 |
+| GET | `/auth/config` | O que está ligado (e-mail, Google) | 200 |
+| POST | `/auth/cadastro` | Cria conta e abre sessão | 201, 409, 422 |
+| POST | `/auth/login` | Autentica (ou pede o 2FA) | 200, 401, 422, 429 |
+| POST | `/auth/2fa/login` | Conclui o login com o código | 200, 401, 422 |
+| POST | `/auth/sessao/renovar` | Troca o refresh token | 200, 401 |
+| POST | `/auth/sair` | Encerra a sessão atual | 204 |
 | GET | `/auth/me` | Usuário atual | 200, 401 |
+| POST | `/auth/email/verificar` · `/auth/email/reenviar` | Verificação de e-mail | 200/202 |
+| POST | `/auth/senha/esqueci` · `/auth/senha/redefinir` | Recuperação de senha | 202/204, 422 |
+| POST/GET | `/auth/google/*` | Login com Google (OAuth + PKCE) | 200, 303, 503 |
+| PATCH | `/conta` | Nome, idioma, fuso | 200, 422 |
+| POST | `/conta/senha` | Troca ou define a senha | 200, 422 |
+| GET/DELETE | `/conta/sessoes` · `/conta/sessoes/:id` | Sessões ativas | 200/204 |
+| POST | `/conta/2fa/configurar` · `ativar` · `desativar` · `codigos` | 2FA | 200, 409, 422 |
 | GET | `/tarefas` | Lista (`?search=&status=&priority=`) | 200 |
 | POST | `/tarefas` | Cria e devolve a tarefa com `id` | 201, 422 |
 | PATCH | `/tarefas/:id` | Atualiza **só os campos enviados**; `status`/`position` reordenam | 200, 404, 422 |
@@ -125,7 +142,10 @@ Com PGlite, não rode `db:seed` com a API ligada: o banco embutido aceita um pro
 
 ### Variáveis de ambiente
 
-- `apps/api/.env` — **somente no servidor**: `DATABASE_URL`, `JWT_SECRET`, `PORT`, `CORS_ORIGIN`…
+- `apps/api/.env` — **somente no servidor**: `DATABASE_URL`, `JWT_SECRET`, `PORT`, `CORS_ORIGIN`,
+  `APP_URL`, `API_PUBLIC_URL`, `DATA_ENCRYPTION_KEY` e, opcionais, `RESEND_API_KEY`/`MAIL_FROM` e
+  `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` (modelo comentado em `apps/api/.env.example`). Em
+  desenvolvimento, sem Resend, os e-mails ficam em `apps/api/.data/mails/*.html`.
 - `apps/web/.env` — apenas valores públicos: `VITE_API_URL` (em desenvolvimento `/api`, repassado pelo proxy do Vite) e `VITE_SITE_URL` (URL pública usada em SEO, Open Graph e sitemap; padrão `https://israelksilva.github.io/TaskFlow/`).
 
 ## Scripts
@@ -138,6 +158,28 @@ Com PGlite, não rode `db:seed` com a API ligada: o banco embutido aceita um pro
 | `npm run lint` / `npm run typecheck` | Qualidade |
 | `npm run build` | Build da API (`apps/api/dist`) e do front (`apps/web/dist`) |
 | `npm run db:migrate` / `npm run db:seed` | Banco |
+
+## Ligar e-mail e login com Google (produção)
+
+**E-mail (Resend):**
+
+1. Crie uma conta em [resend.com](https://resend.com). Sem domínio próprio, o Resend só envia para o
+   e-mail da própria conta (bom para testar); para enviar a qualquer pessoa, verifique um domínio em
+   *Domains*.
+2. Em *API Keys*, crie uma chave com permissão de envio.
+3. No Render (serviço da API → *Environment*): `RESEND_API_KEY` = a chave e `MAIL_FROM` =
+   `Andamo <nao-responda@seu-dominio>`; confira `APP_URL` (endereço do front, com `/` no fim).
+
+**Google:**
+
+1. Em [console.cloud.google.com](https://console.cloud.google.com), crie um projeto e configure a
+   *Tela de permissão OAuth* (tipo Externo; escopos `openid`, `email`, `profile`).
+2. *Credenciais → Criar credenciais → ID do cliente OAuth → Aplicativo da Web*. Em *URIs de
+   redirecionamento autorizados*, coloque `https://<sua-api>.onrender.com/v1/auth/google/callback`.
+3. No Render: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` e `API_PUBLIC_URL` =
+   `https://<sua-api>.onrender.com`.
+
+Sem essas variáveis, as telas que dependem delas ficam ocultas automaticamente.
 
 ## Deploy (próxima etapa)
 

@@ -3,7 +3,14 @@ import { env, isProduction } from "../config/env";
 
 export const logger = pino({
   level: env.LOG_LEVEL,
-  redact: ["req.headers.authorization", "*.password", "*.passwordHash"],
+  redact: [
+    "req.headers.authorization",
+    "*.password",
+    "*.passwordHash",
+    "*.refreshToken",
+    "*.accessToken",
+    "*.token",
+  ],
   transport: isProduction
     ? undefined
     : env.LOG_LEVEL === "silent"

@@ -20,7 +20,7 @@ Entrega dos [requisitos](REQUISITOS.md) em fases incrementais, sobre a [arquitet
 | 1    | Fundação: correções, testes E2E, API v1                                | §1, §26, §27                      | ⏸      |
 | 2    | Design system, AppShell e redesign das telas atuais                    | §2, §6                            | ⏸      |
 | 3    | Landing page comercial, SEO e páginas legais                           | §3                                | ⏸      |
-| 4    | Autenticação completa e segurança de contas                            | §4, §22 (segurança)               | ⬜     |
+| 4    | Autenticação completa e segurança de contas                            | §4, §22 (segurança)               | ⏸      |
 | 5    | Multiempresa: workspaces, membros, equipes, RBAC, projetos, onboarding | §4 (onboarding), §7, §8, §12, §26 | ⬜     |
 | 6    | **Notificações** (internas, tempo real, e-mail, push, lembretes)       | §11, §22 (preferências)           | ⬜     |
 | 7    | Tarefas completas e Kanban avançado (Kanban, lista, tabela)            | §9, §10                           | ⬜     |
@@ -126,20 +126,30 @@ funcionalidades correspondentes, sempre com dados reais.
 
 ---
 
-## Fase 4 — Autenticação completa
+## Fase 4 — Autenticação completa ⏸
 
-**Decisões necessárias:** ADR-003 (domínio), ADR-004 (Resend — conta e domínio de envio).
+**Decisões do Israel:** ADR-003 — sem domínio próprio por enquanto: refresh token no
+armazenamento do navegador em vez de cookie HttpOnly (revisar quando houver domínio). ADR-004 — e-mail
+construído agora e enviado depois: sem `RESEND_API_KEY`, produção não envia e as telas que dependem de
+e-mail ficam ocultas. Login com Google construído e desligado até existirem as credenciais OAuth.
 
-- [ ] P0 Sessões: access curto + refresh rotativo em cookie HttpOnly; "manter conectado"; tratamento
-      de sessão expirada no front; sessões ativas e encerrar outras (S-03)
-- [ ] P0 `Mailer` + Resend + templates HTML responsivos com a marca
-- [ ] P0 Verificação de e-mail; recuperação e redefinição de senha (S-05)
-- [ ] P0 Respostas que não revelam contas existentes (S-04); proteção contra força bruta por conta e
-      IP, bloqueio progressivo (S-06); bcrypt 12 com rehash (S-08)
-- [ ] P1 Login com Google
-- [ ] P1 2FA TOTP com códigos de recuperação
-- [ ] P1 Força da senha, mostrar/ocultar senha
-- [ ] P1 Configurações: dados pessoais, foto, senha, idioma, fuso, aparência, segurança
+- [x] P0 Sessões: access de 15 min em memória + refresh rotativo com detecção de reuso; "manter
+      conectado" (30 dias × 24 h); renovação automática e aviso de sessão expirada no front; sessões
+      ativas e encerrar outras (S-03, parcial: cookie HttpOnly depende do domínio)
+- [x] P0 `Mailer` (Resend / arquivo local em dev / desligado) + templates HTML responsivos com a marca
+- [x] P0 Verificação de e-mail; recuperação e redefinição de senha (S-05)
+- [x] P0 Login e recuperação não revelam contas (S-04, cadastro mantém o aviso — ver SECURITY); bloqueio
+      progressivo por conta + limites por IP (S-06); bcrypt 12 com rehash (S-08)
+- [x] P1 Login com Google (OAuth + PKCE; vincular/desvincular nas configurações) — desligado até as
+      credenciais
+- [x] P1 2FA TOTP com códigos de recuperação
+- [x] P1 Força da senha, mostrar/ocultar senha
+- [x] P1 Configurações: dados pessoais, senha, idioma, fuso, aparência, segurança, sessões
+- [ ] P2 Foto de perfil → Fase 11 (depende do armazenamento de arquivos, ADR-005)
+
+**Para ligar em produção (Israel):** `RESEND_API_KEY` + `MAIL_FROM` (e-mail) e `GOOGLE_CLIENT_ID` +
+`GOOGLE_CLIENT_SECRET` (Google), além de `APP_URL`, `API_PUBLIC_URL` e `DATA_ENCRYPTION_KEY` — passo a
+passo no README.
 
 ---
 
@@ -287,8 +297,8 @@ reinício do servidor.
 | --- | ------------------------------------------------------------------ | ------------------ | ------------------------------------ |
 | 1   | Restante do documento de requisitos (o texto parou no meio do §27) | Planejamento final | Enviar o restante                    |
 | 2   | Hospedagem do front (ADR-002)                                      | Fase 3             | ✅ GitHub Pages + `HashRouter`        |
-| 3   | Domínio próprio (ADR-003)                                          | Fase 4             | Registrar `andamo.com.br` ou similar |
-| 4   | Conta no Resend e domínio de envio (ADR-004)                       | Fase 4             | Resend                               |
+| 3   | Domínio próprio (ADR-003)                                          | Fase 4             | ✅ Adiado: sem domínio por enquanto   |
+| 4   | Conta no Resend e domínio de envio (ADR-004)                       | Fase 4             | ✅ Construído; envio quando houver chave |
 | 5   | API sempre ligada (ADR-008) — custo mensal                         | Fase 6             | Render Starter ou equivalente        |
 | 6   | Armazenamento de arquivos (ADR-005)                                | Fase 11            | Cloudflare R2                        |
 | 7   | Gateway: Stripe ou Mercado Pago (ADR-006)                          | Fase 13            | Mercado Pago (PIX/boleto)            |

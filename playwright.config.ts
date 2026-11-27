@@ -43,6 +43,8 @@ export default defineConfig({
         CONTACT_LIMIT_PER_HOUR: "100000",
         AUTH_LIMIT_PER_15MIN: "100000",
         LOG_LEVEL: "warn",
+        APP_URL: `http://localhost:${WEB_PORT}/`,
+        API_PUBLIC_URL: `http://localhost:${API_PORT}`,
       },
     },
     {
