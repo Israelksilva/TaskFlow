@@ -6,6 +6,37 @@ Todas as mudanças relevantes do Andamo. Formato baseado em
 
 ## [Não publicado]
 
+### Fase 4 — Autenticação completa e segurança de contas
+
+#### Adicionado
+
+- Sessões renováveis: token de acesso de 15 minutos e renovação automática, "Manter conectado por 30
+  dias", aviso de sessão expirada, sair em uma aba sai nas outras.
+- Configurações da conta (`/#/app/configuracoes`): nome, fuso horário, tema, senha (ou definir senha
+  em conta só Google), verificação em duas etapas, e-mail, Google e sessões ativas (encerrar uma ou
+  todas as outras).
+- Verificação em duas etapas com app autenticador (QR code) e 10 códigos de recuperação.
+- Verificação de e-mail, "esqueci a senha" e redefinição por link; e-mails com a marca e avisos de
+  segurança.
+- Login com Google (desligado até as credenciais serem configuradas).
+- Força da senha e botão mostrar/ocultar nos formulários.
+- `GET /v1/auth/config`, rotas de sessão, e-mail, senha, 2FA, Google e `/v1/conta/*` (OpenAPI
+  atualizado).
+- Testes: 6 suítes novas na API, cliente de sessão e componentes no front, 7 E2E de conta e axe nas
+  telas novas.
+
+#### Alterado
+
+- Login e cadastro devolvem `{ user, accessToken, refreshToken, expiresIn }` (antes `{ user, token }`).
+- Bloqueio progressivo após falhas de login por conta; bcrypt 12 com rehash transparente.
+- `JWT_EXPIRES_IN` substituída por `ACCESS_TOKEN_TTL_MIN`.
+
+#### Atenção na implantação
+
+- Migração aditiva `003`; quem estava logado precisa entrar de novo uma vez.
+- Configure `APP_URL`, `API_PUBLIC_URL` e `DATA_ENCRYPTION_KEY` no Render. E-mail e Google só ligam
+  com as respectivas chaves.
+
 ### Fase 3 — Landing page comercial, SEO e páginas legais
 
 #### Adicionado

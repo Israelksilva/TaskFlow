@@ -100,6 +100,37 @@ GitHub Pages em `/TaskFlow/` (por isso `HashRouter` e `base` no Vite). O plano f
 - **Limites configuráveis:** `AUTH_LIMIT_PER_15MIN` (padrão 20) e `CONTACT_LIMIT_PER_HOUR`; o E2E
   usa valores altos.
 
+### 1.4 Mudanças da Fase 4
+
+- **Migração aditiva `003_auth_sessions_security.sql`:** colunas novas em `users` (verificação de
+  e-mail, 2FA, Google, idioma, fuso; `password_hash` passa a aceitar nulo para contas só Google) e
+  tabelas `sessions`, `auth_tokens` (verificação, redefinição, desafio de 2FA, estado e troca do
+  OAuth), `recovery_codes` e `login_throttle`. Nenhum dado existente é alterado.
+- **Sessões (ADR-003):** token de acesso JWT de 15 min com `sid`; o middleware confere se a sessão
+  está ativa no banco (encerrar uma sessão vale na hora). Refresh token opaco (só o hash no banco),
+  trocado a cada renovação; reapresentar o anterior em até 30 s é tratado como corrida entre abas
+  (`SESSION_ROTATED`), depois disso derruba a sessão. Sessão de 24 h, ou 30 dias renovados com o uso
+  com "manter conectado".
+- **Front:** token de acesso só em memória, refresh no `localStorage` (`lib/session.ts`).
+  `api-client` renova antes de vencer e uma vez após `401`, com uma renovação por vez por aba e entre
+  abas (Web Locks); recusa → sessão encerrada com aviso. Sair numa aba sai nas outras (evento
+  `storage`).
+- **Contas (`modules/auth`, `account`, `google`, `mail`):** verificação de e-mail (24 h), redefinição
+  de senha (30 min, encerra todas as sessões), bloqueio progressivo por conta (5ª falha: 1, 2, 4… até
+  30 min), 2FA TOTP (chave cifrada com AES-256-GCM, anti-reuso do código, 10 códigos de recuperação em
+  hash), Google OAuth com PKCE e código de troca de 60 s (não vincula sozinho conta com e-mail não
+  verificado), avisos por e-mail de troca de senha e 2FA.
+- **E-mail (ADR-004):** interface `Mailer` com `ResendMailer`, `DevMailer` (grava em `.data/mails`),
+  `MemoryMailer` (testes) e `DisabledMailer` (produção sem chave). `GET /v1/auth/config` diz ao front
+  o que está ligado; sem e-mail, "esqueci a senha" orienta a usar o contato.
+- **Telas:** login com 2FA, Google e "manter conectado"; cadastro com força da senha; esqueci/redefinir
+  senha; verificar e-mail; retorno do Google; `/app/configuracoes` (perfil, aparência, senha, 2FA com
+  QR code gerado no navegador, e-mail, Google, sessões); aviso de e-mail não verificado no AppShell.
+- **Variáveis novas:** `ACCESS_TOKEN_TTL_MIN`, `APP_URL`, `API_PUBLIC_URL`, `DATA_ENCRYPTION_KEY`,
+  `RESEND_API_KEY`, `MAIL_FROM`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`. Sai `JWT_EXPIRES_IN`.
+- **Efeito na implantação:** quem estava logado antes da atualização precisa entrar de novo uma vez
+  (tokens antigos não têm sessão).
+
 ## 2. Princípios
 
 1. **Preservar o que funciona.** Migrações novas (nunca editar antigas), migração de dados testada,
@@ -279,8 +310,8 @@ src/
 | ------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
 | ADR-001 | Um nível de inquilino: workspace = organização; equipes e projetos dentro dele.                                                        | Proposta                                                     |
 | ADR-002 | Front continua no GitHub Pages com `HashRouter` (decisão do Israel, 25/11/2026). CSP via `<meta>`; só a raiz é indexável; sem HSTS/headers HTTP próprios. Reavaliar junto com o domínio (ADR-003). | **Aceito** — limitações em SECURITY S-07 |
-| ADR-003 | Domínio próprio com `app.` e `api.` no mesmo site (cookies `SameSite=Lax`).                                                            | Aguardando domínio (bloqueia a Fase 4)                       |
-| ADR-004 | E-mail transacional: Resend, atrás da interface `Mailer`; templates em React Email.                                                    | Proposta (`§11` prefere Resend)                              |
+| ADR-003 | Sem domínio próprio por enquanto (decisão do Israel na Fase 4): refresh token no `localStorage`, access token só em memória, sessões revogáveis no servidor. Com domínio: refresh em cookie HttpOnly `SameSite=Lax` em `api.` do mesmo site. | **Aceito** (provisório) — risco em SECURITY S-03 |
+| ADR-004 | E-mail: Resend atrás de `Mailer`; templates em TypeScript (HTML em tabelas + texto) em vez de React Email, para não trazer React à API. Sem chave, produção não envia (decisão do Israel na Fase 4: "construir já, enviar depois"). | **Aceito** — envio aguarda conta no Resend |
 | ADR-005 | Arquivos: Cloudflare R2 (compatível com S3) com URL assinada.                                                                          | Proposta                                                     |
 | ADR-006 | Pagamentos: Stripe ou Mercado Pago atrás de `BillingProvider`, só em modo de teste até autorização.                                    | **Aguardando decisão** (Fase 13)                             |
 | ADR-007 | Manter SQL puro + migrador próprio (sem ORM).                                                                                          | Proposta                                                     |
