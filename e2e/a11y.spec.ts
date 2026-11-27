@@ -42,6 +42,29 @@ for (const theme of ["light", "dark"] as const) {
       await page.goto("/#/cadastro");
       await expect(page.getByRole("heading", { name: "Criar conta" })).toBeVisible();
       await expectNoViolations(page, "cadastro");
+      await page.goto("/#/esqueci-senha");
+      await expect(page.getByRole("heading", { name: "Esqueceu a senha?" })).toBeVisible();
+      await expectNoViolations(page, "esqueci a senha");
+      await page.goto("/#/redefinir-senha?token=token-de-exemplo-com-tamanho-ok");
+      await expect(page.getByRole("heading", { name: "Criar nova senha" })).toBeVisible();
+      await expectNoViolations(page, "redefinir senha");
+    });
+
+    test("configurações e ativação de 2FA", async ({ page }) => {
+      await signUp(page);
+      await page.goto("/#/app/configuracoes");
+      await expect(page.getByRole("heading", { name: "Configurações" })).toBeVisible();
+      await expectNoViolations(page, "configurações: perfil");
+      await page.getByRole("tab", { name: "Segurança" }).click();
+      await page.getByLabel("Nova senha", { exact: true }).fill("abc");
+      await expectNoViolations(page, "configurações: segurança");
+      await page.getByRole("button", { name: "Ativar verificação em duas etapas" }).click();
+      await expect(page.getByRole("dialog").getByRole("img", { name: /QR code/ })).toBeVisible();
+      await expectNoViolations(page, "diálogo de 2FA");
+      await page.keyboard.press("Escape");
+      await page.getByRole("tab", { name: "Sessões" }).click();
+      await expect(page.getByText("Esta sessão")).toBeVisible();
+      await expectNoViolations(page, "configurações: sessões");
     });
 
     test("quadro vazio, com tarefas, modal e paleta", async ({ page }) => {

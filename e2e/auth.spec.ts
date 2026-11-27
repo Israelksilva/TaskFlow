@@ -8,8 +8,8 @@ test("cadastro, sair e entrar de novo", async ({ page }) => {
   await expect(page).toHaveURL(/#\/entrar/);
 
   await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Senha").fill(password);
-  await page.getByRole("button", { name: "Entrar" }).click();
+  await page.getByLabel("Senha", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await expect(page.getByRole("button", { name: "Menu da conta" })).toBeVisible();
 });
 
@@ -19,8 +19,8 @@ test("login com senha errada mostra erro e não entra", async ({ page }) => {
   await page.getByRole("menuitem", { name: "Sair" }).click();
 
   await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Senha").fill("senhaErrada999");
-  await page.getByRole("button", { name: "Entrar" }).click();
+  await page.getByLabel("Senha", { exact: true }).fill("senhaErrada999");
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await expect(page.getByRole("alert")).toBeVisible();
   await expect(page).toHaveURL(/#\/entrar/);
 });
@@ -33,7 +33,7 @@ test("rota protegida redireciona para o login e volta após entrar", async ({ pa
   await page.goto("/#/app/design-system");
   await expect(page).toHaveURL(/#\/entrar/);
   await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Senha").fill(password);
-  await page.getByRole("button", { name: "Entrar" }).click();
+  await page.getByLabel("Senha", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await expect(page).toHaveURL(/#\/app\/design-system/);
 });

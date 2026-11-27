@@ -6,6 +6,7 @@ import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { VerifyEmailBanner } from "@/features/auth/components/VerifyEmailBanner";
 import { AccountMenu } from "./AccountMenu";
 import { CommandPalette } from "./CommandPalette";
 import { Logo } from "./Logo";
@@ -138,6 +139,7 @@ export function AppShell() {
           </div>
           <AccountMenu />
         </header>
+        <VerifyEmailBanner />
 
         <main id="conteudo" tabIndex={-1} className="flex-1 focus:outline-none">
           <Suspense

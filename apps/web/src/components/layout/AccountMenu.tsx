@@ -1,4 +1,5 @@
-import { LogOut, Monitor, Moon, Sun } from "lucide-react";
+import { LogOut, Monitor, Moon, Settings, Sun } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,12 @@ export function AccountMenu() {
           <p className="truncate text-sm font-medium">{user?.name}</p>
           <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/app/configuracoes">
+            <Settings className="mr-2 h-4 w-4" aria-hidden /> Configurações
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Tema</DropdownMenuLabel>
         <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>

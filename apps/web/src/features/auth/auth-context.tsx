@@ -1,53 +1,99 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { AuthResponse } from "@andamo/shared";
-import { onUnauthorized } from "@/lib/api-client";
-import { tokenStorage } from "@/lib/storage";
+import { toast } from "sonner";
+import type { AuthResponse, User } from "@andamo/shared";
+import { onSessionChange } from "@/lib/api-client";
+import { REFRESH_STORAGE_KEY, session } from "@/lib/session";
 import { authApi } from "./api";
 import { AuthContext, type AuthContextValue, type AuthStatus } from "./use-auth";
 
-const ME_KEY = ["auth", "me"] as const;
+export const ME_KEY = ["auth", "me"] as const;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
-  const [token, setToken] = useState(() => tokenStorage.get());
+  const [hasSession, setHasSession] = useState(() => session.hasSession());
 
   const me = useQuery({
     queryKey: ME_KEY,
     queryFn: ({ signal }) => authApi.me(signal),
-    enabled: Boolean(token),
+    enabled: hasSession,
     staleTime: Infinity,
   });
 
-  const logout = useCallback(() => {
-    tokenStorage.remove();
-    setToken(null);
+  const clearLocal = useCallback(() => {
+    session.clear();
+    setHasSession(false);
     queryClient.clear();
   }, [queryClient]);
 
+  const logout = useCallback(() => {
+    // Encerra no servidor sem segurar a interface; se falhar, a sessão expira sozinha.
+    if (session.hasSession()) authApi.logout().catch(() => undefined);
+    clearLocal();
+  }, [clearLocal]);
+
   const startSession = useCallback(
-    ({ token: newToken, user }: AuthResponse) => {
-      tokenStorage.set(newToken);
+    (auth: AuthResponse) => {
+      session.save(auth);
       queryClient.clear();
-      queryClient.setQueryData(ME_KEY, user);
-      setToken(newToken);
+      queryClient.setQueryData(ME_KEY, auth.user);
+      setHasSession(true);
     },
     [queryClient],
   );
 
-  // Token expirado/inválido em qualquer requisição → encerra a sessão.
+  const setUser = useCallback(
+    (user: User) => queryClient.setQueryData(ME_KEY, user),
+    [queryClient],
+  );
+
   useEffect(() => {
-    onUnauthorized(logout);
-    return () => onUnauthorized(null);
-  }, [logout]);
+    onSessionChange({
+      onEnd: (reason) => {
+        clearLocal();
+        toast.info(
+          reason === "revoked"
+            ? "Esta sessão foi encerrada. Entre novamente."
+            : "Sua sessão expirou. Entre novamente.",
+        );
+      },
+      onRefresh: (auth) => queryClient.setQueryData(ME_KEY, auth.user),
+    });
+    return () => onSessionChange(null);
+  }, [clearLocal, queryClient]);
+
+  // Saiu ou entrou em outra aba → acompanha.
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== REFRESH_STORAGE_KEY) return;
+      if (!event.newValue) {
+        session.dropAccessToken();
+        setHasSession(false);
+        queryClient.clear();
+      } else if (!event.oldValue) {
+        setHasSession(true);
+        void queryClient.invalidateQueries({ queryKey: ME_KEY });
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [queryClient]);
 
   const value = useMemo<AuthContextValue>(() => {
     let status: AuthStatus = "unauthenticated";
-    if (token && me.data) status = "authenticated";
-    else if (token && me.isError) status = "error";
-    else if (token) status = "loading";
-    return { status, user: me.data ?? null, startSession, logout, retry: () => void me.refetch(), error: me.error };
-  }, [token, me, startSession, logout]);
+    if (hasSession && me.data) status = "authenticated";
+    else if (hasSession && me.isError) status = "error";
+    else if (hasSession) status = "loading";
+    return {
+      status,
+      user: me.data ?? null,
+      startSession,
+      setUser,
+      logout,
+      retry: () => void me.refetch(),
+      error: me.error,
+    };
+  }, [hasSession, me, startSession, setUser, logout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
