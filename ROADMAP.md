@@ -217,7 +217,22 @@ Onde gerar cada credencial: `docs/CREDENCIAIS.md`.
 Ferramenta pronta (`npm run neon:verificar|neon:estado|neon:migrar`, `dev:neon-teste`) e guia em
 `docs/VALIDACAO-NEON.md`. Recusa o endpoint de produção, exige SSL e confirmação do endpoint de teste; compara
 usuários, tarefas e vínculos antes × depois. Simulação local (001 + dados → 002..005) aprovada em teste automatizado.
-**Pendente:** execução na branch de teste do Neon (depende da criação da branch pelo responsável).
+**Executado em 27/11/2026 na branch de teste** `teste-migracoes` (endpoint `ep-polished-paper-b6t78jjl`, branch
+`br-billowing-mode-b620kciw`, projeto `broad-sea-41441805`; produção `ep-hidden-surf-b6nezf5e` **não foi tocada**):
+- Antes: só a 001 aplicada; 3 usuários e 14 tarefas.
+- Aplicadas, em ordem: 002, 003, 004 e 005 (cada uma em transação), sem erros.
+- Depois: 3 usuários e 14 tarefas; 3 workspaces pessoais, 3 membros (proprietários), 3 projetos “Minhas tarefas” e
+  9 colunas (A Fazer, Em Progresso, Concluído por projeto).
+- Comparação (10 de 10 ✅): usuários preservados (e-mail, nome, cadastro); tarefas preservadas (autor, título,
+  descrição, status, prioridade, prazo, conclusão); toda tarefa tem workspace e projeto; cada tarefa está no
+  workspace pessoal do próprio dono; projeto no mesmo workspace; autor é membro; 1 workspace pessoal por usuário;
+  dono é proprietário; coluna coerente com o status; posições sem duplicidade. Nenhuma migração altera a posição
+  das tarefas (ordem do quadro preservada).
+- App ligado à cópia (`dev:neon-teste`): cadastro, login, colunas, listagem e criação de tarefa OK (conta de
+  validação criada só na branch de teste).
+- **Pendente:** login do responsável com a própria conta e conferência visual do quadro com as tarefas antigas.
+- Registros (só ids e hashes): `apps/api/.validacao-neon/` (fora do git).
+Produção continua sem as migrações: aplicar só com autorização explícita, com backup/branch da produção antes.
 
 ## Próximos passos sugeridos (próxima sessão)
 1. Revisar e autorizar: `git push` da branch + deploy (as migrações 002 a 005 rodam no Neon no start do
