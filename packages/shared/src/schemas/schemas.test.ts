@@ -5,7 +5,7 @@ import { createTaskSchema, importTasksSchema, updateTaskSchema } from "./task";
 describe("registerSchema", () => {
   it("normaliza e-mail e exige senha forte", () => {
     const ok = registerSchema.safeParse({ name: " Ana ", email: " ANA@Mail.com ", password: "senha123" });
-    expect(ok.success && ok.data).toEqual({ name: "Ana", email: "ana@mail.com", password: "senha123" });
+    expect(ok.success && ok.data).toEqual({ name: "Ana", email: "ana@mail.com", password: "senha123", remember: false });
     expect(registerSchema.safeParse({ name: "Ana", email: "ana@mail.com", password: "semnumero" }).success).toBe(false);
   });
 });
@@ -49,5 +49,31 @@ describe("importTasksSchema", () => {
       status: "done",
       priority: "media",
     });
+  });
+});
+
+describe("schemas de autenticação (Fase 4)", () => {
+  it("login aceita remember e assume false", async () => {
+    const { loginSchema } = await import("./auth");
+    expect(loginSchema.parse({ email: "A@B.COM", password: "x" })).toEqual({ email: "a@b.com", password: "x", remember: false });
+  });
+
+  it("código de 2FA aceita 6 dígitos com espaços e códigos de recuperação", async () => {
+    const { mfaCodeSchema, totpCodeSchema } = await import("./auth");
+    expect(totpCodeSchema.parse(" 123 456 ")).toBe("123456");
+    expect(mfaCodeSchema.parse("abcde-12345")).toBe("ABCDE-12345");
+    expect(mfaCodeSchema.safeParse("12345").success).toBe(false);
+  });
+
+  it("perfil rejeita campos extras e fuso inválido", async () => {
+    const { updateProfileSchema } = await import("./auth");
+    expect(updateProfileSchema.safeParse({ email: "x@y.com" }).success).toBe(false);
+    expect(updateProfileSchema.safeParse({ timezone: "Lua/Base" }).success).toBe(false);
+    expect(updateProfileSchema.parse({ timezone: "America/Bahia" })).toEqual({ timezone: "America/Bahia" });
+  });
+
+  it("nova senha deve ser diferente da atual", async () => {
+    const { changePasswordSchema } = await import("./auth");
+    expect(changePasswordSchema.safeParse({ currentPassword: "senha1234", newPassword: "senha1234" }).success).toBe(false);
   });
 });

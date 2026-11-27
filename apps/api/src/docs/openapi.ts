@@ -1,6 +1,17 @@
 import { z } from "zod";
 import {
+  changePasswordSchema,
+  confirmIdentitySchema,
   contactSchema,
+  enableTwoFactorSchema,
+  forgotPasswordSchema,
+  googleExchangeSchema,
+  googleStartSchema,
+  mfaLoginSchema,
+  refreshSchema,
+  resetPasswordSchema,
+  tokenSchema,
+  updateProfileSchema,
   createTaskSchema,
   importTasksSchema,
   loginSchema,
@@ -26,11 +37,40 @@ const errors = (...codes: number[]) =>
 const ERROR_TEXT: Record<number, string> = {
   400: "Requisição malformada",
   401: "Não autenticado",
+  403: "Proibido",
   404: "Não encontrado",
   409: "Conflito",
   422: "Dados inválidos",
   429: "Limite de requisições excedido",
+  503: "Recurso não configurado no servidor",
 };
+
+const obj = (properties: Record<string, object>, required = Object.keys(properties)) => ({
+  type: "object",
+  properties,
+  required,
+});
+const okBody = obj({ ok: { type: "boolean" } });
+const userEnvelope = obj({ user: ref("User") });
+
+/** Operação JSON compacta. `body` é um schema Zod (entrada); `ok` é [status, descrição, schema?]. */
+function op(
+  tag: string,
+  summary: string,
+  { body, ok, errs = [], open = false }: { body?: z.ZodType; ok: [number, string, object?]; errs?: number[]; open?: boolean },
+) {
+  const [status, description, schema] = ok;
+  return {
+    tags: [tag],
+    summary,
+    ...(open ? { security: [] } : {}),
+    ...(body ? { requestBody: { required: true, content: json(input(body)) } } : {}),
+    responses: { [status]: { description, ...(schema ? { content: json(schema) } : {}) }, ...errors(...errs) },
+  };
+}
+
+const A = "Autenticação";
+const C = "Conta";
 const idParam = {
   name: "id",
   in: "path",
@@ -49,7 +89,7 @@ export function buildOpenApiSpec(version: string) {
     },
     servers: [{ url: "/v1" }],
     security: [{ bearerAuth: [] }],
-    tags: [{ name: "Autenticação" }, { name: "Tarefas" }, { name: "Público" }],
+    tags: [{ name: "Autenticação" }, { name: "Conta" }, { name: "Tarefas" }, { name: "Público" }],
     paths: {
       "/contato": {
         post: {
@@ -69,7 +109,7 @@ export function buildOpenApiSpec(version: string) {
       "/auth/cadastro": {
         post: {
           tags: ["Autenticação"],
-          summary: "Cria conta e devolve token",
+          summary: "Cria conta e abre sessão (envia e-mail de verificação)",
           security: [],
           requestBody: { required: true, content: json(input(registerSchema)) },
           responses: {
@@ -81,14 +121,159 @@ export function buildOpenApiSpec(version: string) {
       "/auth/login": {
         post: {
           tags: ["Autenticação"],
-          summary: "Autentica e devolve token",
+          summary: "Autentica; com 2FA ativo devolve um desafio (`mfaRequired`)",
           security: [],
           requestBody: { required: true, content: json(input(loginSchema)) },
           responses: {
-            200: { description: "Autenticado", content: json(ref("AuthResponse")) },
+            200: {
+              description: "Sessão aberta ou desafio de 2FA",
+              content: json({ oneOf: [ref("AuthResponse"), ref("MfaChallenge")] }),
+            },
             ...errors(401, 422, 429),
           },
         },
+      },
+      "/auth/config": {
+        get: op(A, "O que está habilitado (e-mail, Google)", {
+          open: true,
+          ok: [200, "Configuração", obj({ emailEnabled: { type: "boolean" }, googleEnabled: { type: "boolean" } })],
+        }),
+      },
+      "/auth/2fa/login": {
+        post: op(A, "Conclui o login com o código do app ou de recuperação", {
+          open: true,
+          body: mfaLoginSchema,
+          ok: [200, "Sessão aberta", ref("AuthResponse")],
+          errs: [401, 422, 429],
+        }),
+      },
+      "/auth/sessao/renovar": {
+        post: op(A, "Troca o refresh token por um novo par (reuso derruba a sessão)", {
+          open: true,
+          body: refreshSchema,
+          ok: [200, "Sessão renovada", ref("AuthResponse")],
+          errs: [401, 422, 429],
+        }),
+      },
+      "/auth/sair": { post: op(A, "Encerra a sessão atual", { ok: [204, "Encerrada"], errs: [401] }) },
+      "/auth/email/verificar": {
+        post: op(A, "Confirma o e-mail com o token do link", {
+          open: true,
+          body: tokenSchema,
+          ok: [200, "Verificado", userEnvelope],
+          errs: [422, 429],
+        }),
+      },
+      "/auth/email/reenviar": {
+        post: op(A, "Reenvia o e-mail de verificação", { ok: [202, "Aceito", okBody], errs: [401, 429] }),
+      },
+      "/auth/senha/esqueci": {
+        post: op(A, "Pede o link de redefinição (resposta igual exista ou não a conta)", {
+          open: true,
+          body: forgotPasswordSchema,
+          ok: [202, "Aceito", okBody],
+          errs: [422, 429],
+        }),
+      },
+      "/auth/senha/redefinir": {
+        post: op(A, "Define nova senha com o token e encerra todas as sessões", {
+          open: true,
+          body: resetPasswordSchema,
+          ok: [204, "Senha redefinida"],
+          errs: [422, 429],
+        }),
+      },
+      "/auth/google/iniciar": {
+        post: op(A, "URL de autorização do Google (OAuth + PKCE)", {
+          open: true,
+          body: googleStartSchema,
+          ok: [200, "URL", obj({ url: { type: "string", format: "uri" } })],
+          errs: [429, 503],
+        }),
+      },
+      "/auth/google/callback": {
+        get: {
+          tags: [A],
+          summary: "Retorno do Google; redireciona para o front com um código de uso único",
+          security: [],
+          responses: { 303: { description: "Redireciona para o front" } },
+        },
+      },
+      "/auth/google/trocar": {
+        post: op(A, "Troca o código de uso único (60 s) pela sessão", {
+          open: true,
+          body: googleExchangeSchema,
+          ok: [200, "Sessão ou desafio de 2FA", { oneOf: [ref("AuthResponse"), ref("MfaChallenge")] }],
+          errs: [401, 422, 429],
+        }),
+      },
+      "/conta": {
+        patch: op(C, "Atualiza nome, idioma e fuso", { body: updateProfileSchema, ok: [200, "Atualizada", userEnvelope], errs: [401, 422] }),
+      },
+      "/conta/senha": {
+        post: op(C, "Troca (ou define) a senha e encerra as outras sessões", {
+          body: changePasswordSchema,
+          ok: [200, "Senha alterada", userEnvelope],
+          errs: [401, 422, 429],
+        }),
+      },
+      "/conta/sessoes": {
+        get: op(C, "Sessões ativas", {
+          ok: [200, "Sessões", obj({ sessions: { type: "array", items: ref("Session") } })],
+          errs: [401],
+        }),
+      },
+      "/conta/sessoes/encerrar-outras": {
+        post: op(C, "Encerra todas as sessões, menos a atual", {
+          ok: [200, "Quantidade encerrada", obj({ revoked: { type: "integer" } })],
+          errs: [401],
+        }),
+      },
+      "/conta/sessoes/{id}": {
+        parameters: [idParam],
+        delete: op(C, "Encerra uma sessão", { ok: [204, "Encerrada"], errs: [401, 404] }),
+      },
+      "/conta/2fa": {
+        get: op(C, "Códigos de recuperação restantes", {
+          ok: [200, "Status", obj({ recoveryCodesRemaining: { type: "integer" } })],
+          errs: [401],
+        }),
+      },
+      "/conta/2fa/configurar": {
+        post: op(C, "Gera o segredo do app autenticador (ainda inativo)", {
+          ok: [200, "Segredo", obj({ secret: { type: "string" }, otpauthUrl: { type: "string" } })],
+          errs: [401, 409],
+        }),
+      },
+      "/conta/2fa/ativar": {
+        post: op(C, "Ativa o 2FA com um código e devolve os códigos de recuperação", {
+          body: enableTwoFactorSchema,
+          ok: [200, "Ativado", obj({ user: ref("User"), recoveryCodes: { type: "array", items: { type: "string" } } })],
+          errs: [401, 409, 422, 429],
+        }),
+      },
+      "/conta/2fa/desativar": {
+        post: op(C, "Desativa o 2FA (exige código do app ou de recuperação)", {
+          body: confirmIdentitySchema,
+          ok: [200, "Desativado", userEnvelope],
+          errs: [401, 409, 422, 429],
+        }),
+      },
+      "/conta/2fa/codigos": {
+        post: op(C, "Gera novos códigos de recuperação (invalida os anteriores)", {
+          body: enableTwoFactorSchema,
+          ok: [200, "Códigos", obj({ recoveryCodes: { type: "array", items: { type: "string" } } })],
+          errs: [401, 409, 422, 429],
+        }),
+      },
+      "/conta/google/vincular": {
+        post: op(C, "URL para conectar a conta Google", {
+          ok: [200, "URL", obj({ url: { type: "string", format: "uri" } })],
+          errs: [401, 503],
+        }),
+      },
+      "/conta/google": {
+        delete: op(C, "Desconecta o Google (exige senha definida)", { ok: [200, "Desconectado", userEnvelope], errs: [401, 409] }),
       },
       "/auth/me": {
         get: {
@@ -171,21 +356,34 @@ export function buildOpenApiSpec(version: string) {
     components: {
       securitySchemes: { bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" } },
       schemas: {
-        User: {
-          type: "object",
-          required: ["id", "name", "email", "createdAt"],
-          properties: {
-            id: { type: "string", format: "uuid" },
-            name: { type: "string" },
-            email: { type: "string", format: "email" },
-            createdAt: { type: "string", format: "date-time" },
-          },
-        },
-        AuthResponse: {
-          type: "object",
-          required: ["user", "token"],
-          properties: { user: ref("User"), token: { type: "string" } },
-        },
+        User: obj({
+          id: { type: "string", format: "uuid" },
+          name: { type: "string" },
+          email: { type: "string", format: "email" },
+          createdAt: { type: "string", format: "date-time" },
+          emailVerified: { type: "boolean" },
+          hasPassword: { type: "boolean" },
+          twoFactorEnabled: { type: "boolean" },
+          googleLinked: { type: "boolean" },
+          locale: { type: "string" },
+          timezone: { type: "string" },
+        }),
+        AuthResponse: obj({
+          user: ref("User"),
+          accessToken: { type: "string", description: "JWT de 15 min" },
+          refreshToken: { type: "string", description: "Opaco; trocado a cada renovação" },
+          expiresIn: { type: "integer", description: "Segundos" },
+        }),
+        MfaChallenge: obj({ mfaRequired: { type: "boolean", const: true }, mfaToken: { type: "string" } }),
+        Session: obj({
+          id: { type: "string", format: "uuid" },
+          current: { type: "boolean" },
+          userAgent: { type: ["string", "null"] },
+          ip: { type: ["string", "null"] },
+          createdAt: { type: "string", format: "date-time" },
+          lastUsedAt: { type: "string", format: "date-time" },
+          expiresAt: { type: "string", format: "date-time" },
+        }),
         Task: {
           type: "object",
           required: [

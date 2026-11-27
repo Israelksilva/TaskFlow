@@ -8,7 +8,7 @@ import { docsRoutes } from "./docs/docs.routes";
 import { logger } from "./lib/logger";
 import { errorHandler, notFoundHandler } from "./middlewares/error-handler";
 import { globalLimiter } from "./middlewares/rate-limit";
-import { authRoutes } from "./modules/auth/auth.routes";
+import { accountRoutes, authRoutes } from "./modules/auth/auth.routes";
 import { contactRoutes } from "./modules/contact/contact.routes";
 import { healthRoutes } from "./modules/health/health.routes";
 import { taskRoutes } from "./modules/tasks/task.routes";
@@ -19,6 +19,7 @@ const REQUEST_ID = /^[\w-]{8,64}$/;
 function apiRouter() {
   const router = Router();
   router.use("/auth", authRoutes);
+  router.use("/conta", accountRoutes);
   router.use("/tarefas", taskRoutes);
   router.use("/contato", contactRoutes);
   return router;

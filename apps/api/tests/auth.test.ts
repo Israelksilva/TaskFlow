@@ -10,7 +10,7 @@ describe("POST /auth/cadastro", () => {
       .send({ name: "Ana", email: "ANA@Test.dev", password: "senha1234" })
       .expect(201);
 
-    expect(res.body.token).toEqual(expect.any(String));
+    expect(res.body.accessToken).toEqual(expect.any(String));
     expect(res.body.user).toMatchObject({ name: "Ana", email: "ana@test.dev" });
     expect(res.body.user).not.toHaveProperty("passwordHash");
     expect(res.body.user).not.toHaveProperty("password_hash");

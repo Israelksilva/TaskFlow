@@ -7,11 +7,46 @@ export interface User {
   name: string;
   email: string;
   createdAt: string;
+  emailVerified: boolean;
+  /** `false` em contas criadas só com o Google. */
+  hasPassword: boolean;
+  twoFactorEnabled: boolean;
+  googleLinked: boolean;
+  locale: string;
+  timezone: string;
 }
 
+/** Sessão aberta: token de acesso curto + refresh token (trocado a cada renovação). */
 export interface AuthResponse {
   user: User;
-  token: string;
+  accessToken: string;
+  refreshToken: string;
+  /** Validade do token de acesso, em segundos. */
+  expiresIn: number;
+}
+
+/** Login com 2FA ativo: falta o código do app autenticador. */
+export interface MfaChallenge {
+  mfaRequired: true;
+  mfaToken: string;
+}
+
+export type LoginResponse = AuthResponse | MfaChallenge;
+
+export interface SessionInfo {
+  id: string;
+  current: boolean;
+  userAgent: string | null;
+  ip: string | null;
+  createdAt: string;
+  lastUsedAt: string;
+  expiresAt: string;
+}
+
+/** O que está habilitado no servidor (o front esconde o que depende de configuração). */
+export interface AuthConfig {
+  emailEnabled: boolean;
+  googleEnabled: boolean;
 }
 
 export interface Task {
