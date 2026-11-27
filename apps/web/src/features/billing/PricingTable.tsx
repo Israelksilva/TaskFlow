@@ -52,7 +52,6 @@ const ROWS: Array<{ label: string; value: (id: PlanId) => string | boolean }> = 
   { label: "Controle de tempo", value: (id) => PLANS[id].features.timeTracking },
   { label: "Relatórios", value: (id) => PLANS[id].features.reports },
   { label: "Automações", value: (id) => (PLANS[id].limits.automations === null ? "Ilimitadas" : PLANS[id].limits.automations ? `Até ${PLANS[id].limits.automations}` : false) },
-  { label: "Assistente de IA", value: (id) => PLANS[id].features.ai },
   { label: "Auditoria administrativa", value: (id) => PLANS[id].features.auditLog },
   { label: "Suporte prioritário", value: (id) => PLANS[id].features.prioritySupport },
 ];

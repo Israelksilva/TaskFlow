@@ -17,7 +17,7 @@ Render ou Neon).
 | 4 | Colaboração, notificações, lembretes, push, e-mails | CONCLUÍDO no código; entrega real de push/e-mail BLOQUEADA por credenciais |
 | 5 | Calendário, tempo, documentos, relatórios, busca, automações | EM DESENVOLVIMENTO (tudo pronto, exceto Documentos/arquivos, que depende de storage) |
 | 6 | Planos, pagamentos, admin, suporte | EM DESENVOLVIMENTO (planos/limites prontos; pagamentos e admin pendentes) |
-| 7 | PWA, IA, integrações, otimizações, testes finais | EM DESENVOLVIMENTO (PWA e otimizações prontas) |
+| 7 | PWA, integrações, otimizações, testes finais | EM DESENVOLVIMENTO (PWA, otimizações e E2E prontos; IA adiada) |
 
 ## Detalhamento
 
@@ -136,7 +136,10 @@ etiqueta, prazo em N dias, concluir tarefa principal). Criar, editar, ativar/pau
 loops** (a automação não reage à própria cadeia; profundidade máx. 3), limite de 100 execuções/h, falha
 registrada e avisada ao criador (evento “automação falhou” de R10). Recorrência continua nativa.
 Verificado no navegador em 26/11/2026.
-### R18 IA — PENDENTE (exige escolha de provedor e credenciais; nunca alterar dados sem confirmação)
+### R18 IA — ADIADA (decisão do responsável em 26/11/2026)
+Fora desta versão. Removida da comparação de planos e dos destaques do Business; não há telas, menus, rotas nem
+chamadas a provedores de IA (nenhuma integração com Gemini existia no código). O Andamo funciona sem chave de IA.
+Ao retomar: escolher provedor, credenciais só no backend e confirmação explícita antes de a IA alterar dados.
 
 ### R19 PWA — EM TESTES
 Manifest, service worker (cache de assets, navegação offline, push, clique abre a tarefa), ícones SVG, tela
@@ -206,7 +209,6 @@ e build Docker. PENDENTE: deploy (aguarda autorização), Sentry, ambiente de ho
 2. Configurar credenciais: Resend (e-mail), VAPID (push), Google OAuth.
 4. E2E com Playwright (fluxos: cadastro, quadro, cronômetro, automação).
 5. Escolher provedor de pagamentos (modo teste) e storage de arquivos (R15, R22).
-6. Assistente de IA (R18) — depende de escolha de provedor e chave.
 
 Decisão registrada em 26/11/2026: como ainda não há pagamento, o plano Free inclui controle de tempo, relatórios
 e 3 automações (`packages/shared/src/plans.ts`). Revisar ao ativar a cobrança.

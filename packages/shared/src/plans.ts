@@ -16,7 +16,6 @@ export interface PlanFeatures {
   reports: boolean;
   automations: boolean;
   guests: boolean;
-  ai: boolean;
   prioritySupport: boolean;
   auditLog: boolean;
 }
@@ -46,7 +45,6 @@ export const PLANS: Record<PlanId, Plan> = {
       reports: true,
       automations: true,
       guests: false,
-      ai: false,
       prioritySupport: false,
       auditLog: false,
     },
@@ -65,7 +63,6 @@ export const PLANS: Record<PlanId, Plan> = {
       reports: true,
       automations: true,
       guests: true,
-      ai: false,
       prioritySupport: false,
       auditLog: false,
     },
@@ -76,7 +73,7 @@ export const PLANS: Record<PlanId, Plan> = {
     name: "Business",
     priceCents: 7990,
     tagline: "Para organizações com várias equipes e governança.",
-    highlights: ["Membros ilimitados", "Automações ilimitadas", "Assistente de IA", "Auditoria e suporte prioritário"],
+    highlights: ["Membros ilimitados", "Automações ilimitadas", "50 GB de armazenamento", "Auditoria e suporte prioritário"],
     limits: { members: null, projects: null, storageMb: 50_000, automations: null },
     features: {
       views: true,
@@ -84,7 +81,6 @@ export const PLANS: Record<PlanId, Plan> = {
       reports: true,
       automations: true,
       guests: true,
-      ai: true,
       prioritySupport: true,
       auditLog: true,
     },
