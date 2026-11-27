@@ -56,3 +56,11 @@ export function formatMinutes(minutes: number | null): string {
   const m = minutes % 60;
   return h ? `${h}h${m ? ` ${m}min` : ""}` : `${m}min`;
 }
+
+/** Tamanho de arquivo legível (pt-BR). */
+export function formatBytes(n: number) {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 ** 2) return `${(n / 1024).toFixed(0)} KB`;
+  if (n < 1024 ** 3) return `${(n / 1024 ** 2).toFixed(1).replace(".", ",")} MB`;
+  return `${(n / 1024 ** 3).toFixed(1).replace(".", ",")} GB`;
+}

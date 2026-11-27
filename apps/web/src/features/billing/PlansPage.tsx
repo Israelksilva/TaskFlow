@@ -1,10 +1,13 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { Info } from "lucide-react";
-import { PLANS } from "@andamo/shared";
+import { can, PLANS } from "@andamo/shared";
 import { useCrumbs } from "@/components/layout/AppHeader";
 import { Button } from "@/components/ui/button";
 import { useCurrentWorkspace, useMembers, useProjects } from "@/features/workspaces/hooks";
 import { PlanComparison, PricingCards } from "./PricingTable";
+import { useBilling } from "./hooks";
+import { CheckoutDialog, SubscriptionSection } from "./SubscriptionSection";
 
 function Usage({ label, used, limit }: { label: string; used: number; limit: number | null }) {
   const pct = limit ? Math.min(100, Math.round((used / limit) * 100)) : 0;
@@ -26,6 +29,12 @@ export default function PlansPage() {
   const members = useMembers(ws.id).data ?? [];
   const projects = useProjects(ws.id).data ?? [];
   const plan = PLANS[ws.plan];
+  const isOwner = can(ws.role, "workspace.billing");
+  const billing = useBilling(ws.id, isOwner);
+  const [checkoutPlan, setCheckoutPlan] = useState<"pro" | "business" | null>(null);
+  const sub = billing.data?.subscription;
+  const hasActive = sub && sub.status !== "cancelled";
+  const canCheckout = isOwner && billing.data?.available && !hasActive;
   useCrumbs([{ label: ws.name, to: `/app/w/${ws.id}` }, { label: "Planos e assinatura" }]);
 
   return (
@@ -42,19 +51,25 @@ export default function PlansPage() {
         <Usage label="Projetos ativos" used={projects.filter((p) => !p.isTemplate).length} limit={plan.limits.projects} />
       </section>
 
-      <div className="flex items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm">
-        <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
-        <p>
-          O pagamento online ainda não está habilitado: a integração com o provedor (Stripe ou Mercado Pago) será ativada em ambiente de testes antes de qualquer cobrança real.
-          Para mudar de plano agora, <Link to="/#contato" className="font-medium text-primary hover:underline">fale com a equipe do Andamo</Link>.
-        </p>
-      </div>
+      {isOwner && billing.data && <SubscriptionSection ws={ws.id} info={billing.data} />}
+      {!isOwner && (
+        <div className="flex items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+          <p>Somente o proprietário do workspace gerencia a assinatura.</p>
+        </div>
+      )}
 
       <PricingCards
         current={ws.plan}
         renderAction={(id) =>
           id === ws.plan ? (
             <Button variant="outline" className="w-full" disabled>Plano atual</Button>
+          ) : canCheckout && id !== "free" ? (
+            <Button variant={id === "pro" ? "default" : "outline"} className="w-full" onClick={() => setCheckoutPlan(id)}>
+              Assinar o {PLANS[id].name} (teste)
+            </Button>
+          ) : id === "free" && hasActive ? (
+            <Button variant="outline" className="w-full" disabled>Cancele a assinatura para voltar ao Free</Button>
           ) : (
             <Button asChild variant={id === "pro" ? "default" : "outline"} className="w-full">
               <Link to="/#contato">Falar sobre o {PLANS[id].name}</Link>
@@ -63,6 +78,7 @@ export default function PlansPage() {
         }
       />
       <PlanComparison />
+      <CheckoutDialog ws={ws.id} plan={checkoutPlan} onClose={() => setCheckoutPlan(null)} />
     </div>
   );
 }

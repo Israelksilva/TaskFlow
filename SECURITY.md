@@ -43,6 +43,19 @@ retenção automática (jobs 7 dias, logs de entrega 90 dias, sessões revogadas
 - Contas suspensas não fazem login (o aviso só aparece após a senha correta), não renovam sessão e perdem as
   sessões ativas. Nenhum dado é apagado.
 
+## Pagamentos (Mercado Pago, modo teste)
+- Só credenciais de teste são aceitas (`TEST-` ou conta com a tag `test_user`); outras são recusadas antes de
+  qualquer chamada de cobrança.
+- Webhook: assinatura HMAC-SHA256 (`x-signature`) com `MP_WEBHOOK_SECRET`, janela de 15 min contra replay,
+  idempotência por `x-request-id`; o estado é sempre relido no provedor e valor/moeda/referência são conferidos.
+- Nenhum dado de cartão passa pelo Andamo (checkout hospedado pelo Mercado Pago).
+
+## Arquivos (Cloudflare R2)
+- Bucket privado; o navegador nunca recebe as chaves. Upload por URL PUT de 15 min e download por URL GET de
+  60 s, geradas só após checar a participação no workspace e o papel.
+- Download sempre com `Content-Disposition: attachment`; executáveis/scripts bloqueados; chave do objeto
+  aleatória (sem nome do arquivo); tamanho conferido no bucket antes de liberar.
+
 ## Operação
 - **Backup**: o Neon mantém histórico (point-in-time restore conforme o plano). Antes de aplicar migrações em
   produção, crie um *branch* do banco no painel do Neon (restauração instantânea se algo der errado).

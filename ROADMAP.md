@@ -117,7 +117,16 @@ garantido no banco** (índice único parcial) com opção de trocar de tarefa, r
 projeto e por pessoa, filtros de período/projeto/pessoa, exportação CSV (compatível com Excel), atualização
 entre dispositivos (WebSocket). Disponível no plano Free (decisão: `plans.ts`, ajustável).
 Verificado no navegador em 25/11/2026. PENDENTE: exportação em PDF/Excel nativo (junto com R16).
-### R15 Documentos e arquivos — PENDENTE (requer storage de objetos: S3/R2/Supabase — decisão e credenciais)
+### R15 Documentos e arquivos — CÓDIGO CONCLUÍDO · teste real pendente (Cloudflare R2)
+Anexos em tarefas e documentos do projeto (visão “Arquivos”), em bucket **privado** no Cloudflare R2: envio direto
+do navegador por URL pré-assinada de 15 min (o arquivo não passa pela API), conferência do tamanho no bucket antes de
+liberar, download por URL de 60 s sempre como anexo, chave sem o nome do arquivo. Permissões: membro+ envia, todo
+membro baixa, quem enviou ou gestor exclui; outro workspace = 404; executáveis bloqueados; 50 MB por arquivo e limite
+de armazenamento do plano. Lixeira esconde anexos; exclusão definitiva de arquivo/tarefa/conta remove do bucket pela
+fila (retry); envios abandonados são limpos. Evento “novo anexo” notifica responsáveis e seguidores.
+Assinatura V4 própria validada com o vetor oficial da AWS; 6 testes com R2 simulado. Sem credenciais, a UI informa
+que o armazenamento não está configurado. **Falta:** credenciais `R2_*`, CORS do bucket e teste real de envio.
+Fora desta etapa: versões, pré-visualização, editor de documentos.
 ### R16 Relatórios — CONCLUÍDO
 Dados reais com período livre (até 1 ano) e **comparação automática com o período anterior**: concluídas,
 criadas, taxa de conclusão, atrasadas, tempo médio de conclusão, concluídas no prazo, horas; evolução diária ou
@@ -157,8 +166,14 @@ exportação de dados, exclusão de conta. PENDENTE: upload de foto (R15), outro
 ### R22 Monetização — EM DESENVOLVIMENTO
 CONCLUÍDO: planos FREE/PRO/BUSINESS configuráveis (`packages/shared/src/plans.ts`), página de preços,
 comparação, limites aplicados no servidor (projetos, membros, convidados), uso no app.
-**BLOQUEADO:** checkout, assinaturas, cupons, webhooks — requer escolher Stripe ou Mercado Pago e chaves de
-**teste**. Nenhuma cobrança é feita; a UI informa que o pagamento online ainda não está habilitado.
+Mercado Pago **somente em modo de teste** (código concluído, teste real pendente): assinatura mensal (preapproval)
+pelo proprietário, checkout no ambiente de teste, webhook com assinatura HMAC + anti-replay + idempotência,
+releitura do estado no provedor e conferência de valor/moeda/referência antes de liberar o plano, sincronização ao
+voltar do checkout, cancelamento mantendo o plano até o fim do ciclo e retorno automático ao Free (dados
+preservados), auditoria e notificação ao dono. A API **recusa** credencial que não seja de teste. 5 testes com o
+provedor simulado. **Falta:** `MP_ACCESS_TOKEN` (usuário de teste vendedor), `MP_WEBHOOK_SECRET`, webhook
+cadastrado e um ciclo completo com comprador de teste. Fora desta etapa: cupons, faturas/recibos, troca de plano
+sem cancelar.
 
 ### R23 Painel administrativo — CONCLUÍDO
 `/app/admin` (somente admin da plataforma **com 2FA obrigatório**): visão geral (usuários, ativos 30d, cadastros
@@ -192,7 +207,7 @@ Code splitting por rota, shell lazy, vendor chunks (entrada ~80 kB), error bound
 antigo, índices. PENDENTE: Lighthouse, virtualização de listas longas.
 
 ### R29 Testes — EM DESENVOLVIMENTO
-132 testes (91 API, 21 shared, 20 web), incluindo painel administrativo (acesso, 2FA, suspensão, planos, avisos), chamados, relatórios, automações (exemplos do requisito, loop, falha,
+145 testes (104 API, 21 shared, 20 web) + 7 E2E (Playwright), incluindo painel administrativo (acesso, 2FA, suspensão, planos, avisos), chamados, relatórios, automações (exemplos do requisito, loop, falha,
 permissões, limite de plano) e exportação CSV/XLSX. Base anterior — 63 API (auth, sessões, força bruta, 2FA, LGPD, isolamento, IDOR, RBAC, limites de plano, lixeira,
 recorrência, conflito, dependências, dashboard, notificações, push/e-mail, lembretes, varredura de atrasos,
 migração), 17 shared, 16 web (componentes, XSS do Markdown, força da senha). Verificação manual no navegador.
@@ -209,8 +224,8 @@ e build Docker. PENDENTE: deploy (aguarda autorização), Sentry, ambiente de ho
 | Resend (e-mail) | pronto (fila, retry, deduplicação) | **pendente** — falta `RESEND_API_KEY` e domínio verificado |
 | Web Push (VAPID) | pronto | **pendente** — faltam `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` |
 | Google OAuth | pronto (ID token validado na API) | **pendente** — falta `GOOGLE_CLIENT_ID` |
-| Mercado Pago (assinaturas, só teste) | em desenvolvimento | **pendente** — faltam `MP_ACCESS_TOKEN` (usuário de teste) e `MP_WEBHOOK_SECRET` |
-| Cloudflare R2 (arquivos privados) | em desenvolvimento | **pendente** — faltam `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` |
+| Mercado Pago (assinaturas, só teste) | pronto (recusa credencial real) | **pendente** — faltam `MP_ACCESS_TOKEN` (usuário de teste) e `MP_WEBHOOK_SECRET` |
+| Cloudflare R2 (arquivos privados) | pronto (URLs assinadas curtas) | **pendente** — faltam `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` |
 Onde gerar cada credencial: `docs/CREDENCIAIS.md`.
 
 ## Validação das migrações no Neon
@@ -234,13 +249,15 @@ usuários, tarefas e vínculos antes × depois. Simulação local (001 + dados �
   tarefas antigas aparecem nas colunas e na ordem esperadas. **Validação das migrações concluída.**
 - Registros (só ids e hashes): `apps/api/.validacao-neon/` (fora do git).
 Produção continua sem as migrações: aplicar só com autorização explícita, com backup/branch da produção antes.
+**Nova migração 006** (assinaturas e arquivos, aditiva): validada na simulação local (001 + dados → 002..006);
+ainda não aplicada na branch de teste do Neon — aguarda autorização.
 
 ## Próximos passos sugeridos (próxima sessão)
 1. Revisar e autorizar: `git push` da branch + deploy (as migrações 002 a 005 rodam no Neon no start do
    Render — **fazer backup/branch do Neon antes**).
 2. Configurar credenciais: Resend (e-mail), VAPID (push), Google OAuth.
 4. E2E com Playwright (fluxos: cadastro, quadro, cronômetro, automação).
-5. Mercado Pago (modo teste) e Cloudflare R2 (R22, R15) — decididos em 26/11/2026, em implementação.
+5. Inserir credenciais de teste do Mercado Pago e do R2 e fazer um ciclo real de assinatura e de envio de arquivo.
 
 Decisão registrada em 26/11/2026: como ainda não há pagamento, o plano Free inclui controle de tempo, relatórios
 e 3 automações (`packages/shared/src/plans.ts`). Revisar ao ativar a cobrança.

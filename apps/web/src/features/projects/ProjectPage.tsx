@@ -9,6 +9,7 @@ import {
   Copy,
   List,
   MoreHorizontal,
+  Paperclip,
   Pencil,
   Plus,
   Table2,
@@ -59,13 +60,15 @@ import { isTypingTarget } from "@/lib/hooks";
 import { pluralize } from "@/lib/format";
 import { ColumnFormDialog, DeleteColumnDialog } from "./components/ColumnDialogs";
 import { ProjectFormDialog } from "./components/ProjectFormDialog";
+import { AttachmentsPanel } from "@/features/files/AttachmentsPanel";
 
-type View = "kanban" | "lista" | "tabela" | "timeline";
+type View = "kanban" | "lista" | "tabela" | "timeline" | "arquivos";
 const VIEWS: Array<{ id: View; label: string; icon: typeof List }> = [
   { id: "kanban", label: "Kanban", icon: Columns3 },
   { id: "lista", label: "Lista", icon: List },
   { id: "tabela", label: "Tabela", icon: Table2 },
   { id: "timeline", label: "Timeline", icon: CalendarRange },
+  { id: "arquivos", label: "Arquivos", icon: Paperclip },
 ];
 
 interface FormState {
@@ -77,6 +80,7 @@ interface FormState {
 
 function Board({ scope, canManageColumns }: { scope: BoardScope; canManageColumns: boolean }) {
   const ws = useCurrentWorkspace();
+  const { user } = useAuth();
   const qc = useQueryClient();
   const [params, setParams] = useSearchParams();
   const view = (VIEWS.find((v) => v.id === params.get("visao"))?.id ?? "kanban") as View;
@@ -182,7 +186,13 @@ function Board({ scope, canManageColumns }: { scope: BoardScope; canManageColumn
     });
 
   let content;
-  if (tasksQuery.isPending || columnsQuery.isPending) content = <BoardSkeleton />;
+  if (view === "arquivos") {
+    content = user ? (
+      <section aria-label="Documentos do projeto" className="max-w-3xl rounded-xl border bg-card p-4 shadow-card">
+        <AttachmentsPanel workspaceId={ws.id} projectId={scope.projectId} role={ws.role} userId={user.id} />
+      </section>
+    ) : null;
+  } else if (tasksQuery.isPending || columnsQuery.isPending) content = <BoardSkeleton />;
   else if ((tasksQuery.isError && !tasksQuery.data) || columnsQuery.isError) {
     const error = tasksQuery.error ?? columnsQuery.error;
     const retry = () => void Promise.all([tasksQuery.refetch(), columnsQuery.refetch()]);

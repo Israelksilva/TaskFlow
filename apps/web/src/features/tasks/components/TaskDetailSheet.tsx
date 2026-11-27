@@ -48,6 +48,7 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/features/auth/use-auth";
+import { AttachmentsPanel } from "@/features/files/AttachmentsPanel";
 import { onPresence, sendPresence } from "@/features/realtime/use-realtime";
 import { workspacesApi } from "@/features/workspaces/api";
 import { useLabels, useMembers, useProjects, wsKeys } from "@/features/workspaces/hooks";
@@ -501,6 +502,13 @@ function DetailBody({ task, workspace, close }: { task: TaskDetail; workspace: W
         )}
 
         <TaskTimeSection task={task} workspace={workspace} />
+
+        {user && (
+          <section aria-labelledby="files-h" className="space-y-2">
+            <h3 id="files-h" className="text-sm font-semibold">Anexos</h3>
+            <AttachmentsPanel workspaceId={workspace.id} projectId={task.projectId} taskId={task.id} role={task.deletedAt ? "viewer" : workspace.role} userId={user.id} compact />
+          </section>
+        )}
 
         <section aria-labelledby="dep-h" className="space-y-2">
           <h3 id="dep-h" className="text-sm font-semibold">

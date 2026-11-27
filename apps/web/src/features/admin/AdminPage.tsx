@@ -570,7 +570,7 @@ function Status() {
       <div className="grid gap-3 lg:grid-cols-3">
         <Card className="space-y-2"><p className="text-sm font-semibold">Fila de jobs</p>{Object.entries(s.jobs).map(([k, v]) => <div key={k} className="flex justify-between text-sm"><span>{k}</span><span className="tabular-nums">{v}</span></div>)}</Card>
         <Card className="space-y-2"><p className="text-sm font-semibold">Entregas (24 h)</p>{Object.keys(s.deliveries24h).length ? Object.entries(s.deliveries24h).map(([k, v]) => <div key={k} className="flex justify-between text-sm"><span>{k.replace(":", " · ")}</span><span className="tabular-nums">{v}</span></div>) : <p className="text-sm text-muted-foreground">Nenhuma entrega no período.</p>}</Card>
-        <Card className="space-y-2"><p className="text-sm font-semibold">Integrações</p><Flag ok={s.integrations.email} label="E-mail (Resend)" /><Flag ok={s.integrations.push} label="Web Push (VAPID)" /><Flag ok={s.integrations.google} label="Login com Google" /></Card>
+        <Card className="space-y-2"><p className="text-sm font-semibold">Integrações</p><Flag ok={s.integrations.email} label="E-mail (Resend)" /><Flag ok={s.integrations.push} label="Web Push (VAPID)" /><Flag ok={s.integrations.google} label="Login com Google" /><Flag ok={s.integrations.payments} label="Mercado Pago (teste)" /><Flag ok={s.integrations.storage} label="Arquivos (Cloudflare R2)" /></Card>
       </div>
       {s.failedJobs24h.length > 0 && (
         <Card className="space-y-2">

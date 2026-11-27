@@ -26,6 +26,12 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Automações (gatilho → condições → ações) com modelos, histórico, ativar/pausar e prevenção de loops.
 - Painel administrativo da plataforma (métricas, usuários, planos, avisos, contatos, auditoria, status) com 2FA obrigatório.
 - Central de suporte com chamados, conversa com a equipe e avisos globais no app.
+- Assinaturas pelo Mercado Pago em **modo de teste** (checkout, webhook assinado, cancelamento no fim do ciclo).
+- Documentos e anexos em bucket privado do Cloudflare R2 (URLs assinadas de curta duração).
+- Testes de ponta a ponta com Playwright (`npm run e2e`) e validação de migrações no Neon (`neon:*`).
+
+### Removido
+- Assistente de IA da comparação de planos (funcionalidade adiada).
 
 ### Alterado
 - Plano Free passa a incluir controle de tempo, relatórios e até 3 automações (enquanto não há cobrança).
@@ -41,6 +47,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
   tarefa aponta para a coluna da sua categoria; cria `time_entries`.
 - `004_automations.sql` (aditiva): `automations` e `automation_runs`.
 - `005_admin_support.sql` (aditiva): `users.suspended_at`, chamados, mensagens e avisos.
+- `006_billing_and_files.sql` (aditiva): `subscriptions`, `payment_events`, `attachments`.
 
 ## [1.0.0] — 2026-11-24
 - Andamo full stack (React + Express + PostgreSQL/Neon), quadro Kanban com arrastar e soltar.

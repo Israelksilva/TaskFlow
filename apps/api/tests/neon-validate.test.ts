@@ -7,8 +7,8 @@ import { migrate, MIGRATIONS_DIR } from "../src/db/migrate";
 import { compare, snapshot } from "../src/scripts/neon-validate-lib";
 
 /**
- * Simula a produção atual (só a migração 001, com dados) e valida que 002 em diante preservam usuários, tarefas e
- * vínculos (002 em diante) — o mesmo procedimento que o script roda na branch de teste do Neon.
+ * Simula a produção atual (só a migração 001, com dados) e valida que as migrações seguintes preservam usuários, tarefas e
+ * vínculos — o mesmo procedimento que o script roda na branch de teste do Neon.
  */
 const only001 = mkdtempSync(path.join(tmpdir(), "andamo-mig-"));
 cpSync(path.join(MIGRATIONS_DIR, "001_create_users_and_tasks.sql"), path.join(only001, "001_create_users_and_tasks.sql"));

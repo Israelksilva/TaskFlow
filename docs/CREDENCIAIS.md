@@ -22,8 +22,18 @@ Sem uma credencial, a integração fica **desligada e sinalizada** (painel admin
 | | `R2_BUCKET` | **R2 → Create bucket** (ex.: `andamo-arquivos`). Deixe **sem acesso público** (não ative *Public access* nem domínio público) | Render → Environment |
 | | `R2_ACCESS_KEY_ID` e `R2_SECRET_ACCESS_KEY` | **R2 → Manage R2 API Tokens → Create API token** → permissão *Object Read & Write*, **aplicada somente ao bucket acima** → copie *Access Key ID* e *Secret Access Key* (a secreta aparece uma vez) | Render → Environment |
 
-Também no R2 (para upload direto do navegador): bucket → **Settings → CORS policy**, permitindo `PUT` e `GET`
-das origens `https://SEU-USUARIO.github.io` e `http://localhost:8080`.
+Também no R2 (para upload direto do navegador): bucket → **Settings → CORS policy** → cole:
+```json
+[{ "AllowedOrigins": ["https://SEU-USUARIO.github.io", "http://localhost:8080"],
+   "AllowedMethods": ["PUT", "GET"], "AllowedHeaders": ["content-type"], "MaxAgeSeconds": 3600 }]
+```
+
+## Testar a assinatura (Mercado Pago, modo teste)
+1. Com `MP_ACCESS_TOKEN` (do **vendedor de teste**) e `MP_WEBHOOK_SECRET` configurados, entre no Andamo como
+   proprietário → **Planos e assinatura** → “Assinar o Pro (teste)”.
+2. Informe o e-mail do **comprador de teste** e, no Mercado Pago, entre com essa conta de teste e use um
+   cartão de teste (lista na documentação do Mercado Pago Developers, seção de testes de Assinaturas).
+3. Ao voltar, a página consulta o status; o plano muda quando a assinatura fica “Ativa”.
 
 ## Como saber se ficou certo
 Painel **Administração → Status** mostra cada integração como “configurado” ou “sem credenciais”.
