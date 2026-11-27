@@ -20,6 +20,7 @@ import { connectedCount } from "./realtime/hub";
 import "./modules/email/email.service";
 import "./modules/notifications/reminders";
 import "./modules/notifications/subscribers";
+import "./modules/automations/automation.engine";
 
 export function createApp() {
   const app = express();

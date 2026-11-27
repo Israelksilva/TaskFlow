@@ -19,7 +19,7 @@ import {
   type updateTaskSchema,
 } from "@andamo/shared";
 import { db, type Queryable } from "../../db";
-import { emit } from "../../events/bus";
+import { emit, type AutomationChain } from "../../events/bus";
 import { BadRequestError, ConflictError, ForbiddenError, NotFoundError } from "../../shared/errors";
 import { activityRepository } from "../activity/activity.repository";
 import { columnRepository } from "../projects/column.repository";
@@ -35,6 +35,8 @@ export interface TaskContext {
   workspaceId: string;
   userId: string;
   role: Role;
+  /** Presente quando a ação vem de uma automação. */
+  automation?: AutomationChain;
 }
 
 /** Regra de `completedAt`: preenchido ao entrar em "Concluído", limpo ao sair, preservado se continuar concluída. */
@@ -275,7 +277,7 @@ export const taskService = {
       );
       return created;
     });
-    await emit("task.created", { task, actorId: ctx.userId });
+    await emit("task.created", { task, actorId: ctx.userId, automation: ctx.automation });
     return task;
   },
 
@@ -389,8 +391,8 @@ export const taskService = {
       return { before: current, after, next: nextId ? await loadOrFail(ctx, nextId, tx) : null };
     });
 
-    await emit("task.updated", { before: result.before, after: result.after, actorId: ctx.userId });
-    if (result.next) await emit("task.created", { task: result.next, actorId: ctx.userId });
+    await emit("task.updated", { before: result.before, after: result.after, actorId: ctx.userId, automation: ctx.automation });
+    if (result.next) await emit("task.created", { task: result.next, actorId: ctx.userId, automation: ctx.automation });
     return result.after;
   },
 
@@ -461,7 +463,7 @@ export const taskService = {
       );
       return { before: current, after: await loadOrFail(ctx, id, tx) };
     });
-    await emit("task.updated", { ...result, actorId: ctx.userId });
+    await emit("task.updated", { ...result, actorId: ctx.userId, automation: ctx.automation });
     return result.after;
   },
 
@@ -494,7 +496,7 @@ export const taskService = {
       for (const sub of source.subtasks) await insertTask(ctx, copyData(sub, newId, sub.title), tx);
       return loadOrFail(ctx, newId, tx);
     });
-    await emit("task.created", { task, actorId: ctx.userId });
+    await emit("task.created", { task, actorId: ctx.userId, automation: ctx.automation });
     return task;
   },
 

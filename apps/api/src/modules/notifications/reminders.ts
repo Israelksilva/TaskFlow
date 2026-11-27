@@ -98,6 +98,24 @@ registerJob("tasks.overdue_scan", async () => {
   }
 });
 
+/** Automações com gatilho "tarefa atrasada" (inclusive tarefas sem responsável). Uma vez por tarefa e prazo. */
+registerJob("tasks.overdue_automations", async () => {
+  const { rows } = await db.query<{ id: string; workspace_id: string; project_id: string; due_date: string }>(
+    `SELECT DISTINCT t.id, t.workspace_id, t.project_id, t.due_date::text AS due_date
+     FROM tasks t JOIN automations a ON a.workspace_id = t.workspace_id AND a.trigger = 'task.overdue' AND a.enabled
+     WHERE t.status <> 'done' AND t.deleted_at IS NULL AND t.archived_at IS NULL AND t.due_date IS NOT NULL
+       AND t.due_date < current_date AND t.due_date >= current_date - 30
+     LIMIT 2000`,
+  );
+  const { enqueueEvaluation } = await import("../automations/automation.engine");
+  for (const r of rows) {
+    await enqueueEvaluation({
+      workspaceId: r.workspace_id, trigger: "task.overdue", projectId: r.project_id, taskId: r.id,
+      eventKey: `overdue:${r.id}:${r.due_date}`, chain: { depth: 0, ids: [] },
+    });
+  }
+});
+
 /** Resumos por e-mail (diário às 8h; semanal às segundas, 8h — no fuso de cada usuário). */
 registerJob("notifications.digest", async () => {
   const { rows } = await db.query<{ id: string; name: string; email: string; digest: "daily" | "weekly"; local_date: string }>(
@@ -130,5 +148,6 @@ registerJob("maintenance.cleanup", async () => {
 });
 
 registerSchedule("tasks.overdue_scan", 60);
+registerSchedule("tasks.overdue_automations", 60);
 registerSchedule("notifications.digest", 60);
 registerSchedule("maintenance.cleanup", 24 * 60);

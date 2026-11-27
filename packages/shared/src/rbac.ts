@@ -33,6 +33,7 @@ export const PERMISSIONS = {
   "members.invite": "manager",
   "members.manage": "admin",
   "teams.manage": "manager",
+  "automations.manage": "manager",
   "labels.manage": "member",
   "projects.create": "member",
   "projects.manage": "manager",

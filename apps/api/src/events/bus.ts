@@ -1,10 +1,16 @@
 import type { Comment, Project, Role, Task } from "@andamo/shared";
 import { logger } from "../lib/logger";
 
+/** Cadeia de automações que originou a mudança (prevenção de loops). */
+export interface AutomationChain {
+  depth: number;
+  ids: string[];
+}
+
 /** Eventos de domínio emitidos pelos services após o COMMIT. */
 export interface DomainEvents {
-  "task.created": { task: Task; actorId: string };
-  "task.updated": { before: Task; after: Task; actorId: string };
+  "task.created": { task: Task; actorId: string; automation?: AutomationChain };
+  "task.updated": { before: Task; after: Task; actorId: string; automation?: AutomationChain };
   "task.deleted": { task: Task; actorId: string; permanent: boolean };
   "task.restored": { task: Task; actorId: string };
   "comment.created": { comment: Comment; task: Task; actorId: string; mentionIds: string[] };

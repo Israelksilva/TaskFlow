@@ -3,7 +3,9 @@ import { z } from "zod";
 import {
   acceptInvitationSchema,
   commentSchema,
+  createAutomationSchema,
   createColumnSchema,
+  updateAutomationSchema,
   createProjectSchema,
   deleteColumnSchema,
   manualTimeSchema,
@@ -33,6 +35,7 @@ import { parse } from "../../shared/validation";
 import { activityRepository } from "../activity/activity.repository";
 import { commentService } from "../comments/comment.service";
 import { dashboardService } from "../dashboard/dashboard.service";
+import { automationService } from "../automations/automation.service";
 import { columnService } from "../projects/column.service";
 import { projectService, type ProjectContext } from "../projects/project.service";
 import { reportService } from "../reports/report.service";
@@ -250,6 +253,25 @@ w.patch("/tempo/:id", writable, async (req, res) => {
 });
 w.delete("/tempo/:id", writable, async (req, res) => {
   await timeService.remove(wsCtx(req), idParam(req, "id", "Registro"));
+  res.status(204).end();
+});
+
+// ---- automações
+w.get("/automacoes", async (req, res) => {
+  res.json({ automations: await automationService.list(wsCtx(req)) });
+});
+w.get("/automacoes/execucoes", async (req, res) => {
+  const automationId = typeof req.query.automationId === "string" && /^[0-9a-f-]{36}$/i.test(req.query.automationId) ? req.query.automationId : undefined;
+  res.json({ runs: await automationService.runs(wsCtx(req), automationId) });
+});
+w.post("/automacoes", authorize("automations.manage"), async (req, res) => {
+  res.status(201).json({ automation: await automationService.create(wsCtx(req), parse(createAutomationSchema, req.body)) });
+});
+w.patch("/automacoes/:id", authorize("automations.manage"), async (req, res) => {
+  res.json({ automation: await automationService.update(wsCtx(req), idParam(req, "id", "Automação"), parse(updateAutomationSchema, req.body)) });
+});
+w.delete("/automacoes/:id", authorize("automations.manage"), async (req, res) => {
+  await automationService.remove(wsCtx(req), idParam(req, "id", "Automação"));
   res.status(204).end();
 });
 

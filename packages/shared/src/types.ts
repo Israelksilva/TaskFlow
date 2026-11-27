@@ -1,6 +1,7 @@
 import type { ProjectStatus, Recurrence, TaskPriority, TaskStatus } from "./constants";
 import type { PlanId } from "./plans";
 import type { Role } from "./rbac";
+import type { AutomationAction, AutomationConditions, AutomationTrigger } from "./schemas/automation";
 import type { NotificationCategory } from "./schemas/notification";
 
 /** Contratos (DTOs) trafegados pela API em JSON. Datas/horas são strings ISO 8601. */
@@ -267,6 +268,34 @@ export interface TimeSummary {
   /** Estimado × realizado por tarefa (tarefas com tempo ou estimativa no período). */
   byTask: Array<{ taskId: string; projectId: string; title: string; estimateMinutes: number | null; trackedSeconds: number }>;
   byDay: Array<{ date: string; seconds: number }>;
+}
+
+export interface Automation {
+  id: string;
+  workspaceId: string;
+  projectId: string | null;
+  name: string;
+  enabled: boolean;
+  trigger: AutomationTrigger;
+  conditions: AutomationConditions;
+  actions: AutomationAction[];
+  createdBy: UserSummary | null;
+  runCount: number;
+  lastRunAt: string | null;
+  lastError: string | null;
+  createdAt: string;
+}
+
+export interface AutomationRun {
+  id: string;
+  automationId: string;
+  automationName: string;
+  taskId: string | null;
+  taskTitle: string | null;
+  status: "success" | "skipped" | "failed";
+  detail: string | null;
+  depth: number;
+  createdAt: string;
 }
 
 /** Indicadores de um período. */
