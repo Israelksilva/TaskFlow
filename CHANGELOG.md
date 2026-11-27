@@ -24,6 +24,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
 - Relatórios com comparação de períodos, carga × capacidade e exportação CSV, Excel (.xlsx) e PDF (impressão).
 - Automações (gatilho → condições → ações) com modelos, histórico, ativar/pausar e prevenção de loops.
+- Painel administrativo da plataforma (métricas, usuários, planos, avisos, contatos, auditoria, status) com 2FA obrigatório.
+- Central de suporte com chamados, conversa com a equipe e avisos globais no app.
 
 ### Alterado
 - Plano Free passa a incluir controle de tempo, relatórios e até 3 automações (enquanto não há cobrança).
@@ -38,6 +40,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - `003_columns_and_time.sql` (aditiva): cada projeto ganha as colunas A Fazer / Em Progresso / Concluído e cada
   tarefa aponta para a coluna da sua categoria; cria `time_entries`.
 - `004_automations.sql` (aditiva): `automations` e `automation_runs`.
+- `005_admin_support.sql` (aditiva): `users.suspended_at`, chamados, mensagens e avisos.
 
 ## [1.0.0] — 2026-11-24
 - Andamo full stack (React + Express + PostgreSQL/Neon), quadro Kanban com arrastar e soltar.

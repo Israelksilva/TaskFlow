@@ -17,6 +17,7 @@ import { CurrentWorkspaceContext, useWorkspaces } from "@/features/workspaces/ho
 import { getErrorMessage } from "@/lib/api-client";
 import { isTypingTarget, useMediaQuery, useOnline } from "@/lib/hooks";
 import { sidebarStorage, workspaceStorage } from "@/lib/storage";
+import { AnnouncementBanner } from "@/features/support/AnnouncementBanner";
 import { AppHeader, CrumbsContext, type Crumb } from "./AppHeader";
 import { CommandPalette } from "./CommandPalette";
 import { Sidebar } from "./Sidebar";
@@ -147,6 +148,7 @@ export function AppShell() {
                 <WifiOff className="h-3.5 w-3.5" aria-hidden /> Você está offline. Alterações serão possíveis assim que a conexão voltar.
               </div>
             )}
+            <AnnouncementBanner />
             <main id="conteudo" tabIndex={-1} className="scrollbar-thin flex-1 overflow-y-auto focus:outline-none print:overflow-visible">
               <Outlet />
             </main>

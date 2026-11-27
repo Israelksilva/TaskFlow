@@ -91,7 +91,7 @@ Preferências: canais, sons, categorias, horário silencioso, não perturbe, fre
 fuso (perfil). Backend: persistência, fila com `FOR UPDATE SKIP LOCKED`, retry exponencial, idempotência
 (`dedupe_key`), logs de entrega, controle de frequência de push, limpeza de inscrições expiradas.
 **BLOQUEADO:** envio real de e-mail (`RESEND_API_KEY` + domínio verificado) e push (`VAPID_*`).
-**PENDENTE:** eventos "anexo" (R15), "automação falhou" (R17), "aviso administrativo" (R23); preferências por
+**PENDENTE:** evento "anexo" (R15) — "automação falhou" e "aviso administrativo" já existem; preferências por
 projeto na UI (campo `muted_projects` existe na API).
 Decisão: Redis/BullMQ avaliados e **não adotados** — o Render free não inclui Redis e o volume atual cabe numa
 fila PostgreSQL; a interface (`enqueue`/`registerJob`) permite trocar depois.
@@ -157,8 +157,20 @@ comparação, limites aplicados no servidor (projetos, membros, convidados), uso
 **BLOQUEADO:** checkout, assinaturas, cupons, webhooks — requer escolher Stripe ou Mercado Pago e chaves de
 **teste**. Nenhuma cobrança é feita; a UI informa que o pagamento online ainda não está habilitado.
 
-### R23 Painel administrativo — PENDENTE (flag `is_platform_admin`, guard de rota e `audit_log` já existem)
-### R24 Suporte — EM DESENVOLVIMENTO (FAQ, tutoriais, atalhos e contato prontos; chamados pendentes)
+### R23 Painel administrativo — CONCLUÍDO
+`/app/admin` (somente admin da plataforma **com 2FA obrigatório**): visão geral (usuários, ativos 30d, cadastros
+diários, workspaces, distribuição por plano, assinaturas, receita mensal estimada, conversão, cancelamentos),
+usuários (busca, suspender/reativar com motivo — encerra sessões, nada é apagado), workspaces e alteração manual de
+plano (avisa o dono), chamados, avisos globais (faixa no app + notificação em lote opcional), mensagens de contato,
+auditoria (filtros, paginação) e status dos serviços (banco, fila, entregas, falhas, integrações).
+Promoção a admin só por linha de comando (`npm run admin:grant -w @andamo/api -- email`), registrada na auditoria.
+Privacidade: o painel não mostra conteúdo de tarefas/comentários dos clientes. Observação: receita e assinaturas
+refletem planos atribuídos manualmente até existir cobrança (R22). Verificado no navegador em 26/11/2026.
+### R24 Suporte — CONCLUÍDO
+FAQ, tutoriais, atalhos e contato (já existiam) + **central de chamados** em `/app/suporte`: abrir (dúvida, relato
+de erro, sugestão, cobrança, outro), conversa com a equipe, status (aberto, em atendimento, aguardando, resolvido,
+encerrado), encerrar; notificações e e-mail nas respostas; limite de 10 chamados/hora. A equipe responde pelo
+painel administrativo e aparece como "Suporte Andamo". Verificado no navegador em 26/11/2026.
 
 ### R25 Banco — CONCLUÍDO
 Migração 002 não destrutiva com backfill testado sobre dados existentes; FKs, CHECKs, índices parciais, soft
@@ -177,7 +189,7 @@ Code splitting por rota, shell lazy, vendor chunks (entrada ~80 kB), error bound
 antigo, índices. PENDENTE: Lighthouse, virtualização de listas longas.
 
 ### R29 Testes — EM DESENVOLVIMENTO
-126 testes (85 API, 21 shared, 20 web), incluindo relatórios, automações (exemplos do requisito, loop, falha,
+132 testes (91 API, 21 shared, 20 web), incluindo painel administrativo (acesso, 2FA, suspensão, planos, avisos), chamados, relatórios, automações (exemplos do requisito, loop, falha,
 permissões, limite de plano) e exportação CSV/XLSX. Base anterior — 63 API (auth, sessões, força bruta, 2FA, LGPD, isolamento, IDOR, RBAC, limites de plano, lixeira,
 recorrência, conflito, dependências, dashboard, notificações, push/e-mail, lembretes, varredura de atrasos,
 migração), 17 shared, 16 web (componentes, XSS do Markdown, força da senha). Verificação manual no navegador.
@@ -189,10 +201,9 @@ indisponível nesta máquina; o CI constrói a imagem), CI com lint, typecheck, 
 e build Docker. PENDENTE: deploy (aguarda autorização), Sentry, ambiente de homologação.
 
 ## Próximos passos sugeridos (próxima sessão)
-1. Revisar e autorizar: `git push` da branch + deploy (as migrações 002, 003 e 004 rodam no Neon no start do
+1. Revisar e autorizar: `git push` da branch + deploy (as migrações 002 a 005 rodam no Neon no start do
    Render — **fazer backup/branch do Neon antes**).
 2. Configurar credenciais: Resend (e-mail), VAPID (push), Google OAuth.
-3. Painel administrativo da plataforma (R23) e central de chamados (R24) — não dependem de terceiros.
 4. E2E com Playwright (fluxos: cadastro, quadro, cronômetro, automação).
 5. Escolher provedor de pagamentos (modo teste) e storage de arquivos (R15, R22).
 6. Assistente de IA (R18) — depende de escolha de provedor e chave.

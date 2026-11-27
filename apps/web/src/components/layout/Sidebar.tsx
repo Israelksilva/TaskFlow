@@ -19,6 +19,7 @@ import {
   Timer,
   Trash2,
   Users,
+  ShieldCheck,
   Zap,
   type LucideIcon,
 } from "lucide-react";
@@ -33,6 +34,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/features/auth/use-auth";
 import { useUnreadCount } from "@/features/notifications/hooks";
 import { useProjects } from "@/features/workspaces/hooks";
 import { cn } from "@/lib/utils";
@@ -155,6 +157,7 @@ export function Sidebar({
   onCreateProject: () => void;
 }) {
   const unread = useUnreadCount().data ?? 0;
+  const isAdmin = useAuth().user?.isPlatformAdmin ?? false;
   const projects = useProjects(workspace.id).data ?? [];
   const [showAllProjects, setShowAllProjects] = useState(false);
   const base = `/app/w/${workspace.id}`;
@@ -175,7 +178,8 @@ export function Sidebar({
     { to: `${base}/ajustes`, label: "Ajustes do workspace", icon: SlidersHorizontal },
     { to: `${base}/planos`, label: "Planos e assinatura", icon: CreditCard },
     { to: "/app/configuracoes", label: "Configurações", icon: Settings },
-    { to: "/ajuda", label: "Ajuda e suporte", icon: CircleHelp },
+    { to: "/app/suporte", label: "Ajuda e suporte", icon: CircleHelp },
+    ...(isAdmin ? [{ to: "/app/admin", label: "Administração", icon: ShieldCheck }] : []),
   ];
   const visibleProjects = showAllProjects ? projects : projects.slice(0, 6);
 

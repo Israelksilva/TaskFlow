@@ -41,6 +41,8 @@ const WorkspaceSettingsPage = lazy(() => import("@/features/workspaces/pages/Wor
 const PlansPage = lazy(() => import("@/features/billing/PlansPage"));
 const NotificationsPage = lazy(() => import("@/features/notifications/NotificationsPage"));
 const SettingsPage = lazy(() => import("@/features/settings/SettingsPage"));
+const SupportPage = lazy(() => import("@/features/support/SupportPage"));
+const AdminPage = lazy(() => import("@/features/admin/AdminPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 export default function App() {
@@ -76,6 +78,9 @@ export default function App() {
                         <Route path="notificacoes" element={<NotificationsPage />} />
                         <Route path="configuracoes" element={<SettingsPage />} />
                         <Route path="configuracoes/:secao" element={<SettingsPage />} />
+                        <Route path="suporte" element={<SupportPage />} />
+                        <Route path="admin" element={<AdminPage />} />
+                        <Route path="admin/:secao" element={<AdminPage />} />
                         <Route path="w/:workspaceId">
                           <Route index element={<DashboardPage />} />
                           <Route path="minhas-tarefas" element={<MyTasksPage />} />

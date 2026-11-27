@@ -36,6 +36,13 @@ retenção automática (jobs 7 dias, logs de entrega 90 dias, sessões revogadas
 - Chaves de terceiros (Resend, VAPID privada, Google) só no backend. O front recebe apenas `googleClientId` e a
   chave VAPID **pública** por `/v1/config`.
 
+## Administração da plataforma
+- O painel `/app/admin` exige `is_platform_admin` **e** 2FA ativo (verificado na API a cada requisição).
+- Não há rota para promover alguém a admin: só por CLI no servidor (`npm run admin:grant -w @andamo/api -- email`).
+- Ações administrativas (suspensão, plano, avisos, chamados) exigem motivo quando aplicável e ficam no `audit_log`.
+- Contas suspensas não fazem login (o aviso só aparece após a senha correta), não renovam sessão e perdem as
+  sessões ativas. Nenhum dado é apagado.
+
 ## Operação
 - **Backup**: o Neon mantém histórico (point-in-time restore conforme o plano). Antes de aplicar migrações em
   produção, crie um *branch* do banco no painel do Neon (restauração instantânea se algo der errado).

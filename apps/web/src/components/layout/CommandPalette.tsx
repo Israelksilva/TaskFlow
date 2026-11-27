@@ -192,6 +192,7 @@ export function CommandPalette({
                       { to: `${base}/automacoes`, label: "Automações", icon: Plus },
                       { to: `${base}/equipe`, label: "Equipe", icon: Users },
                       { to: "/app/configuracoes", label: "Configurações", icon: Settings },
+                      { to: "/app/suporte", label: "Ajuda e suporte", icon: Users },
                     ].map((item) => (
                       <Command.Item key={item.to} value={`ir ${item.label}`} className={itemClass} onSelect={() => go(item.to)}>
                         <item.icon /> {item.label}
