@@ -15,7 +15,7 @@ Render ou Neon).
 | 2 | Landing, autenticação, onboarding, dashboard, sidebar/header | CONCLUÍDO (Google e e-mail dependem de credenciais) |
 | 3 | Workspaces, projetos, equipes, permissões, Kanban, tarefas | CONCLUÍDO (itens parciais abaixo) |
 | 4 | Colaboração, notificações, lembretes, push, e-mails | CONCLUÍDO no código; entrega real de push/e-mail BLOQUEADA por credenciais |
-| 5 | Calendário, tempo, documentos, relatórios, busca, automações | EM DESENVOLVIMENTO (calendário e busca prontos) |
+| 5 | Calendário, tempo, documentos, relatórios, busca, automações | EM DESENVOLVIMENTO (tudo pronto, exceto Documentos/arquivos, que depende de storage) |
 | 6 | Planos, pagamentos, admin, suporte | EM DESENVOLVIMENTO (planos/limites prontos; pagamentos e admin pendentes) |
 | 7 | PWA, IA, integrações, otimizações, testes finais | EM DESENVOLVIMENTO (PWA e otimizações prontas) |
 
@@ -118,8 +118,24 @@ projeto e por pessoa, filtros de período/projeto/pessoa, exportação CSV (comp
 entre dispositivos (WebSocket). Disponível no plano Free (decisão: `plans.ts`, ajustável).
 Verificado no navegador em 25/11/2026. PENDENTE: exportação em PDF/Excel nativo (junto com R16).
 ### R15 Documentos e arquivos — PENDENTE (requer storage de objetos: S3/R2/Supabase — decisão e credenciais)
-### R16 Relatórios e exportação PDF/CSV/Excel — PENDENTE (dados já disponíveis no dashboard)
-### R17 Automações — PENDENTE (recorrência já cria a próxima ocorrência; motor de regras a fazer)
+### R16 Relatórios — CONCLUÍDO
+Dados reais com período livre (até 1 ano) e **comparação automática com o período anterior**: concluídas,
+criadas, taxa de conclusão, atrasadas, tempo médio de conclusão, concluídas no prazo, horas; evolução diária ou
+semanal (gráfico interativo com séries ligáveis); desempenho por projeto; produtividade e **carga × capacidade**
+por pessoa; por prioridade; filtros de projeto e pessoa. Exportação: **CSV** (pt-BR), **Excel .xlsx real**
+(gerado no navegador, várias abas) e **PDF** pela impressão do navegador (layout de impressão sem menu).
+Verificado no navegador em 26/11/2026. Observação: o PDF usa a janela de impressão (“Salvar como PDF”); não há
+geração de PDF no servidor.
+
+### R17 Automações — CONCLUÍDO
+Gatilhos (tarefa criada, concluída, status alterado, mudou de coluna, atrasada, subtarefas concluídas, projeto
+concluído) → condições (prioridade, etiqueta, responsável, status/coluna de destino) → ações (notificar
+responsáveis/criador/seguidores/gestores/equipe do projeto/pessoa, atribuir, prioridade, mover de coluna,
+etiqueta, prazo em N dias, concluir tarefa principal). Criar, editar, ativar/pausar, excluir, histórico,
+6 modelos com os exemplos do requisito. Execução pela fila (retry), idempotência por evento, **prevenção de
+loops** (a automação não reage à própria cadeia; profundidade máx. 3), limite de 100 execuções/h, falha
+registrada e avisada ao criador (evento “automação falhou” de R10). Recorrência continua nativa.
+Verificado no navegador em 26/11/2026.
 ### R18 IA — PENDENTE (exige escolha de provedor e credenciais; nunca alterar dados sem confirmação)
 
 ### R19 PWA — EM TESTES
@@ -161,7 +177,8 @@ Code splitting por rota, shell lazy, vendor chunks (entrada ~80 kB), error bound
 antigo, índices. PENDENTE: Lighthouse, virtualização de listas longas.
 
 ### R29 Testes — EM DESENVOLVIMENTO
-113 testes (74 API, 21 shared, 18 web). Base anterior — 63 API (auth, sessões, força bruta, 2FA, LGPD, isolamento, IDOR, RBAC, limites de plano, lixeira,
+126 testes (85 API, 21 shared, 20 web), incluindo relatórios, automações (exemplos do requisito, loop, falha,
+permissões, limite de plano) e exportação CSV/XLSX. Base anterior — 63 API (auth, sessões, força bruta, 2FA, LGPD, isolamento, IDOR, RBAC, limites de plano, lixeira,
 recorrência, conflito, dependências, dashboard, notificações, push/e-mail, lembretes, varredura de atrasos,
 migração), 17 shared, 16 web (componentes, XSS do Markdown, força da senha). Verificação manual no navegador.
 **PENDENTE:** E2E Playwright, testes de acessibilidade automatizados, responsividade automatizada.
@@ -172,10 +189,13 @@ indisponível nesta máquina; o CI constrói a imagem), CI com lint, typecheck, 
 e build Docker. PENDENTE: deploy (aguarda autorização), Sentry, ambiente de homologação.
 
 ## Próximos passos sugeridos (próxima sessão)
-1. Revisar e autorizar: `git push` da branch + deploy (as migrações 002 e 003 rodam no Neon no start do Render —
-   **fazer backup/branch do Neon antes**).
+1. Revisar e autorizar: `git push` da branch + deploy (as migrações 002, 003 e 004 rodam no Neon no start do
+   Render — **fazer backup/branch do Neon antes**).
 2. Configurar credenciais: Resend (e-mail), VAPID (push), Google OAuth.
-3. Relatórios com exportação PDF/CSV/Excel (R16) — reaproveitar dashboard e resumo de tempo.
-4. Automações (R17).
-5. Escolher provedor de pagamentos (modo teste) e storage de arquivos.
-6. E2E com Playwright.
+3. Painel administrativo da plataforma (R23) e central de chamados (R24) — não dependem de terceiros.
+4. E2E com Playwright (fluxos: cadastro, quadro, cronômetro, automação).
+5. Escolher provedor de pagamentos (modo teste) e storage de arquivos (R15, R22).
+6. Assistente de IA (R18) — depende de escolha de provedor e chave.
+
+Decisão registrada em 26/11/2026: como ainda não há pagamento, o plano Free inclui controle de tempo, relatórios
+e 3 automações (`packages/shared/src/plans.ts`). Revisar ao ativar a cobrança.

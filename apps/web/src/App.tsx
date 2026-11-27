@@ -35,6 +35,7 @@ const ProjectPage = lazy(() => import("@/features/projects/ProjectPage"));
 const CalendarPage = lazy(() => import("@/features/calendar/CalendarPage"));
 const TimePage = lazy(() => import("@/features/time/TimePage"));
 const ReportsPage = lazy(() => import("@/features/reports/ReportsPage"));
+const AutomationsPage = lazy(() => import("@/features/automations/AutomationsPage"));
 const TeamPage = lazy(() => import("@/features/workspaces/pages/TeamPage"));
 const WorkspaceSettingsPage = lazy(() => import("@/features/workspaces/pages/WorkspaceSettingsPage"));
 const PlansPage = lazy(() => import("@/features/billing/PlansPage"));
@@ -83,6 +84,7 @@ export default function App() {
                           <Route path="calendario" element={<CalendarPage />} />
                           <Route path="tempo" element={<TimePage />} />
                           <Route path="relatorios" element={<ReportsPage />} />
+                          <Route path="automacoes" element={<AutomationsPage />} />
                           <Route path="equipe" element={<TeamPage />} />
                           <Route path="lixeira" element={<TrashPage />} />
                           <Route path="ajustes" element={<WorkspaceSettingsPage />} />

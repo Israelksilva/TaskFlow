@@ -189,6 +189,7 @@ export function CommandPalette({
                       { to: `${base}/calendario`, label: "Calendário", icon: CalendarDays },
                       { to: `${base}/tempo`, label: "Controle de tempo", icon: Clock },
                       { to: `${base}/relatorios`, label: "Relatórios", icon: LayoutDashboard },
+                      { to: `${base}/automacoes`, label: "Automações", icon: Plus },
                       { to: `${base}/equipe`, label: "Equipe", icon: Users },
                       { to: "/app/configuracoes", label: "Configurações", icon: Settings },
                     ].map((item) => (

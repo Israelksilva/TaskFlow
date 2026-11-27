@@ -1,5 +1,9 @@
 import type {
   Activity,
+  Automation,
+  AutomationRun,
+  CreateAutomationInput,
+  UpdateAutomationInput,
   BoardColumn,
   CreateColumnInput,
   UpdateColumnInput,
@@ -83,6 +87,15 @@ export const workspacesApi = {
   archiveProject: (id: string, projectId: string, archived: boolean) =>
     apiRequest<{ project: Project }>(`${ws(id)}/projetos/${projectId}/arquivar`, { method: "POST", body: { archived } }).then((r) => r.project),
   deleteProject: (id: string, projectId: string) => apiRequest<void>(`${ws(id)}/projetos/${projectId}`, { method: "DELETE" }),
+
+  automations: (id: string) => apiRequest<{ automations: Automation[] }>(`${ws(id)}/automacoes`).then((r) => r.automations),
+  automationRuns: (id: string, automationId?: string) =>
+    apiRequest<{ runs: AutomationRun[] }>(`${ws(id)}/automacoes/execucoes`, { query: { automationId } }).then((r) => r.runs),
+  createAutomation: (id: string, input: CreateAutomationInput) =>
+    apiRequest<{ automation: Automation }>(`${ws(id)}/automacoes`, { method: "POST", body: input }).then((r) => r.automation),
+  updateAutomation: (id: string, automationId: string, input: UpdateAutomationInput) =>
+    apiRequest<{ automation: Automation }>(`${ws(id)}/automacoes/${automationId}`, { method: "PATCH", body: input }).then((r) => r.automation),
+  deleteAutomation: (id: string, automationId: string) => apiRequest<void>(`${ws(id)}/automacoes/${automationId}`, { method: "DELETE" }),
 
   columns: (id: string, projectId: string) =>
     apiRequest<{ columns: BoardColumn[] }>(`${ws(id)}/projetos/${projectId}/colunas`).then((r) => r.columns),

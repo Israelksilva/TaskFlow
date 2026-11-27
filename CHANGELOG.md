@@ -22,7 +22,11 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Controle de tempo: cronômetro por tarefa (um por pessoa), registro manual, estimado × realizado,
   página com horas por dia/projeto/pessoa e exportação CSV.
 
+- Relatórios com comparação de períodos, carga × capacidade e exportação CSV, Excel (.xlsx) e PDF (impressão).
+- Automações (gatilho → condições → ações) com modelos, histórico, ativar/pausar e prevenção de loops.
+
 ### Alterado
+- Plano Free passa a incluir controle de tempo, relatórios e até 3 automações (enquanto não há cobrança).
 - API versionada em `/v1`; rotas `/auth` e `/tarefas` mantidas por compatibilidade.
 - Access token passou a durar 15 min (antes 7 dias) — sessões antigas precisam entrar de novo uma vez.
 - Excluir tarefa envia para a lixeira (restaurável).
@@ -33,6 +37,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
   "Minhas tarefas" contendo todas as suas tarefas, na mesma ordem.
 - `003_columns_and_time.sql` (aditiva): cada projeto ganha as colunas A Fazer / Em Progresso / Concluído e cada
   tarefa aponta para a coluna da sua categoria; cria `time_entries`.
+- `004_automations.sql` (aditiva): `automations` e `automation_runs`.
 
 ## [1.0.0] — 2026-11-24
 - Andamo full stack (React + Express + PostgreSQL/Neon), quadro Kanban com arrastar e soltar.

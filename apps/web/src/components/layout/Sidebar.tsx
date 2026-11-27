@@ -19,6 +19,7 @@ import {
   Timer,
   Trash2,
   Users,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 import { ROLE_LABELS, type Workspace } from "@andamo/shared";
@@ -166,6 +167,7 @@ export function Sidebar({
     { to: `${base}/calendario`, label: "Calendário", icon: CalendarDays },
     { to: `${base}/tempo`, label: "Controle de tempo", icon: Timer },
     { to: `${base}/relatorios`, label: "Relatórios", icon: BarChart3 },
+    { to: `${base}/automacoes`, label: "Automações", icon: Zap },
     { to: `${base}/equipe`, label: "Equipe", icon: Users },
   ];
   const footer: NavItem[] = [
