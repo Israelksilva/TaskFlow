@@ -18,7 +18,8 @@
     "neon:verificar": "tsx --env-file=.env.neon-teste src/scripts/neon-validate.ts verificar",
     "neon:estado": "tsx --env-file=.env.neon-teste src/scripts/neon-validate.ts estado",
     "neon:migrar": "tsx --env-file=.env.neon-teste src/scripts/neon-validate.ts migrar",
-    "dev:neon-teste": "tsx --env-file=.env.neon-teste src/scripts/serve-neon-teste.ts"
+    "dev:neon-teste": "tsx --env-file=.env.neon-teste src/scripts/serve-neon-teste.ts",
+    "mp:verificar": "tsx --env-file=.env.neon-teste src/scripts/mp-verificar.ts"
   },
   "dependencies": {
     "@andamo/shared": "*",
