@@ -4,7 +4,7 @@ import { db, type Queryable } from "../../db";
 import { decrypt, encrypt, randomToken, sha256 } from "../../lib/crypto";
 import { DUMMY_HASH, hashPassword, verifyPassword } from "../../lib/password";
 import { generateSecret, otpauthUrl, verifyCode } from "../../lib/totp";
-import { BadRequestError, ConflictError, TooManyRequestsError, UnauthorizedError } from "../../shared/errors";
+import { BadRequestError, ConflictError, ForbiddenError, TooManyRequestsError, UnauthorizedError } from "../../shared/errors";
 import { audit } from "../audit/audit";
 import { queueEmail } from "../email/email.service";
 import { emailTemplates } from "../email/templates";
@@ -46,6 +46,8 @@ async function consumeToken(token: string, purpose: TokenPurpose, tx: Queryable 
 }
 
 async function respond(user: UserRow, client: Client, tx: Queryable = db): Promise<AuthResponse> {
+  // Checado só depois da credencial válida: não revela a terceiros que a conta está suspensa.
+  if (user.suspended_at) throw new ForbiddenError("Esta conta está suspensa. Fale com o suporte do Andamo.", "ACCOUNT_SUSPENDED");
   const { sessionId: _sid, ...tokens } = await sessionService.create(user.id, client, tx);
   return { user: toUserDTO(user), ...tokens };
 }
@@ -163,6 +165,10 @@ export const authService = {
     const { userId, tokens } = await sessionService.refresh(refreshToken, client);
     const user = await userRepository.findById(userId);
     if (!user) throw new UnauthorizedError("Usuário não encontrado", "USER_NOT_FOUND");
+    if (user.suspended_at) {
+      await sessionService.revoke(userId, tokens.sessionId);
+      throw new UnauthorizedError("Esta conta está suspensa. Fale com o suporte.", "ACCOUNT_SUSPENDED");
+    }
     const { sessionId: _sid, ...rest } = tokens;
     return { user: toUserDTO(user), ...rest };
   },

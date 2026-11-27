@@ -3,6 +3,7 @@ import type { PlanId } from "./plans";
 import type { Role } from "./rbac";
 import type { AutomationAction, AutomationConditions, AutomationTrigger } from "./schemas/automation";
 import type { NotificationCategory } from "./schemas/notification";
+import type { TicketPriority, TicketStatus, TicketType } from "./schemas/support";
 
 /** Contratos (DTOs) trafegados pela API em JSON. Datas/horas são strings ISO 8601. */
 
@@ -268,6 +269,100 @@ export interface TimeSummary {
   /** Estimado × realizado por tarefa (tarefas com tempo ou estimativa no período). */
   byTask: Array<{ taskId: string; projectId: string; title: string; estimateMinutes: number | null; trackedSeconds: number }>;
   byDay: Array<{ date: string; seconds: number }>;
+}
+
+export interface SupportTicket {
+  id: string;
+  type: TicketType;
+  subject: string;
+  status: TicketStatus;
+  priority: TicketPriority;
+  /** Quem abriu (para a equipe de suporte). */
+  requester: (UserSummary & { email: string }) | null;
+  workspaceName: string | null;
+  messageCount: number;
+  lastMessageAt: string;
+  createdAt: string;
+  closedAt: string | null;
+}
+
+export interface SupportMessage {
+  id: string;
+  author: UserSummary | null;
+  isStaff: boolean;
+  body: string;
+  createdAt: string;
+}
+
+export interface Announcement {
+  id: string;
+  title: string;
+  body: string;
+  level: "info" | "warning" | "critical";
+  startsAt: string;
+  endsAt: string | null;
+  createdAt: string;
+}
+
+export interface AdminOverview {
+  users: { total: number; active30d: number; new7d: number; new30d: number; suspended: number };
+  workspaces: { total: number; team: number; byPlan: Record<string, number> };
+  /** Workspaces em planos pagos (atribuídos; ainda não há cobrança online). */
+  subscriptions: number;
+  /** Receita mensal recorrente estimada a partir dos planos atribuídos (centavos). */
+  mrrCents: number;
+  /** Mudanças de plano pago → Free nos últimos 30 dias (auditoria). */
+  cancellations30d: number;
+  /** Workspaces de equipe em plano pago / workspaces de equipe (%). */
+  conversionRate: number;
+  signups: Array<{ date: string; count: number }>;
+  support: { open: number; waiting: number };
+}
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  lastLoginAt: string | null;
+  emailVerified: boolean;
+  twoFactorEnabled: boolean;
+  isPlatformAdmin: boolean;
+  suspendedAt: string | null;
+  workspaceCount: number;
+}
+
+export interface AdminWorkspace {
+  id: string;
+  name: string;
+  plan: PlanId;
+  isPersonal: boolean;
+  owner: { id: string; name: string; email: string } | null;
+  memberCount: number;
+  projectCount: number;
+  createdAt: string;
+  archivedAt: string | null;
+}
+
+export interface AdminAuditEntry {
+  id: string;
+  actor: { id: string; name: string } | null;
+  action: string;
+  target: string | null;
+  workspaceId: string | null;
+  ip: string | null;
+  data: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface ServiceStatus {
+  database: { ok: boolean; latencyMs: number };
+  jobs: Record<string, number>;
+  failedJobs24h: Array<{ type: string; count: number; lastError: string | null }>;
+  deliveries24h: Record<string, number>;
+  realtimeConnections: number;
+  integrations: { email: boolean; push: boolean; google: boolean };
+  uptimeSeconds: number;
 }
 
 export interface Automation {

@@ -34,7 +34,7 @@ export interface NotifyInput {
 }
 
 /** Tipos importantes que também geram e-mail imediato (controle de frequência). */
-const EMAIL_TYPES = new Set(["task.assigned", "mention", "task.reminder", "task.overdue", "invitation.received", "admin.announcement"]);
+const EMAIL_TYPES = new Set(["task.assigned", "mention", "task.reminder", "task.overdue", "invitation.received", "admin.announcement", "support.reply", "support.status"]);
 
 interface PrefsRow {
   in_app: boolean;

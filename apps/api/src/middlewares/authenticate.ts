@@ -15,13 +15,15 @@ export function bearerToken(header: string | undefined): string | null {
  */
 export async function resolveAuth(token: string) {
   const { sub, sid } = verifyAccessToken(token);
-  const { rows } = await db.query<{ is_platform_admin: boolean }>(
-    `SELECT u.is_platform_admin FROM sessions s JOIN users u ON u.id = s.user_id
+  const { rows } = await db.query<{ is_platform_admin: boolean; mfa: boolean; suspended: boolean }>(
+    `SELECT u.is_platform_admin, u.totp_enabled_at IS NOT NULL AS mfa, u.suspended_at IS NOT NULL AS suspended
+     FROM sessions s JOIN users u ON u.id = s.user_id
      WHERE s.id = $1 AND s.user_id = $2 AND s.revoked_at IS NULL AND s.expires_at > now() AND u.deleted_at IS NULL`,
     [sid, sub],
   );
   if (!rows[0]) throw new UnauthorizedError("Sessão encerrada. Faça login novamente.", "SESSION_REVOKED");
-  return { userId: sub, sessionId: sid, isPlatformAdmin: rows[0].is_platform_admin };
+  if (rows[0].suspended) throw new UnauthorizedError("Esta conta está suspensa. Fale com o suporte.", "ACCOUNT_SUSPENDED");
+  return { userId: sub, sessionId: sid, isPlatformAdmin: rows[0].is_platform_admin, mfaEnabled: rows[0].mfa };
 }
 
 export const authenticate: RequestHandler = async (req, _res, next) => {
@@ -34,5 +36,9 @@ export const authenticate: RequestHandler = async (req, _res, next) => {
 /** Painel administrativo da plataforma (não confundir com admin de workspace). */
 export const requirePlatformAdmin: RequestHandler = (req, _res, next) => {
   if (!req.auth?.isPlatformAdmin) throw new ForbiddenError("Acesso restrito à administração do Andamo");
+  // Contas com acesso administrativo precisam de verificação em duas etapas.
+  if (!req.auth.mfaEnabled) {
+    throw new ForbiddenError("Ative a verificação em duas etapas para acessar a administração", "ADMIN_MFA_REQUIRED");
+  }
   next();
 };

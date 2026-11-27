@@ -15,13 +15,14 @@ export interface UserRow {
   totp_enabled_at: Date | string | null;
   onboarded_at: Date | string | null;
   failed_login_count: number;
+  suspended_at: Date | string | null;
   locked_until: Date | string | null;
   created_at: Date | string;
 }
 
 const COLUMNS = `id, name, email, password_hash, avatar_url, email_verified_at, locale, timezone,
   is_platform_admin, google_sub, totp_secret, totp_enabled_at, onboarded_at,
-  failed_login_count, locked_until, created_at`;
+  failed_login_count, locked_until, suspended_at, created_at`;
 
 /** Campos de perfil editáveis: nomes de coluna vêm desta lista fixa, nunca do cliente. */
 const EDITABLE = {

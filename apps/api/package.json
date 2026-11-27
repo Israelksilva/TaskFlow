@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "db:migrate": "tsx --env-file=.env src/db/migrate-cli.ts",
     "db:migrate:prod": "node --env-file-if-exists=.env dist/migrate.js",
-    "db:seed": "tsx --env-file=.env src/db/seed.ts"
+    "db:seed": "tsx --env-file=.env src/db/seed.ts",
+    "admin:grant": "tsx --env-file=.env src/scripts/grant-admin.ts"
   },
   "dependencies": {
     "@andamo/shared": "*",

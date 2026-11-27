@@ -9,7 +9,9 @@ import { buildOpenApi } from "./docs/openapi";
 import { queueStats } from "./jobs/queue";
 import { logger } from "./lib/logger";
 import { errorHandler, notFoundHandler } from "./middlewares/error-handler";
+import { adminRoutes } from "./modules/admin/admin.routes";
 import { authRoutes } from "./modules/auth/auth.routes";
+import { supportRoutes } from "./modules/support/support.routes";
 import { notificationRoutes } from "./modules/notifications/notification.routes";
 import { publicRoutes } from "./modules/public/public.routes";
 import { legacyTaskRoutes } from "./modules/tasks/task.routes";
@@ -85,6 +87,8 @@ export function createApp() {
   app.use("/v1/workspaces", workspaceRoutes);
   app.use("/v1/notificacoes", notificationRoutes);
   app.use("/v1/tempo", timerRoutes);
+  app.use("/v1/suporte", supportRoutes);
+  app.use("/v1/admin", adminRoutes);
 
   // Rotas originais (compatibilidade com o cliente anterior)
   app.use("/auth", authRoutes);
