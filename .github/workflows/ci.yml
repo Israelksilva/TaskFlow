@@ -40,6 +40,28 @@ jobs:
           for i in $(seq 1 30); do curl -sf http://localhost:3399/health && exit 0; sleep 1; done
           echo "API não respondeu ao health check" && exit 1
 
+  e2e:
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      # Banco em memória (PGlite); nenhum segredo real é usado.
+      - run: npm run e2e
+        env:
+          E2E_BROWSER: chromium
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
   docker:
     runs-on: ubuntu-latest
     needs: check

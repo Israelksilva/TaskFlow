@@ -26,10 +26,13 @@
     "db:migrate": "npm run db:migrate -w @andamo/api",
     "db:seed": "npm run db:seed -w @andamo/api",
     "db:studio": "npm run db:studio -w @andamo/api",
-    "setup": "npm install && npm run db:migrate && npm run db:seed"
+    "setup": "npm install && npm run db:migrate && npm run db:seed",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
+    "@playwright/test": "^1.56.1",
     "concurrently": "^9.2.0",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
