@@ -271,6 +271,45 @@ export interface TimeSummary {
   byDay: Array<{ date: string; seconds: number }>;
 }
 
+export interface Subscription {
+  id: string;
+  plan: "pro" | "business";
+  status: "pending" | "authorized" | "paused" | "cancelled";
+  amountCents: number;
+  payerEmail: string;
+  testMode: boolean;
+  nextPaymentAt: string | null;
+  /** Depois de cancelada, o plano pago vale até esta data. */
+  endsAt: string | null;
+  cancelledAt: string | null;
+  createdAt: string;
+}
+
+export interface BillingInfo {
+  /** Mercado Pago configurado na API. */
+  available: boolean;
+  /** Nesta versão, sempre true: só credenciais de teste são aceitas. */
+  testMode: boolean;
+  subscription: Subscription | null;
+}
+
+export interface Attachment {
+  id: string;
+  projectId: string;
+  taskId: string | null;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+  uploadedBy: UserSummary | null;
+  createdAt: string;
+}
+
+export interface StorageUsage {
+  available: boolean;
+  usedBytes: number;
+  limitBytes: number;
+}
+
 export interface SupportTicket {
   id: string;
   type: TicketType;
@@ -361,7 +400,7 @@ export interface ServiceStatus {
   failedJobs24h: Array<{ type: string; count: number; lastError: string | null }>;
   deliveries24h: Record<string, number>;
   realtimeConnections: number;
-  integrations: { email: boolean; push: boolean; google: boolean };
+  integrations: { email: boolean; push: boolean; google: boolean; payments: boolean; storage: boolean };
   uptimeSeconds: number;
 }
 
@@ -481,7 +520,7 @@ export interface SearchResults {
 }
 
 export interface PublicConfig {
-  integrations: { email: boolean; push: boolean; google: boolean };
+  integrations: { email: boolean; push: boolean; google: boolean; payments: boolean; storage: boolean };
   googleClientId: string | null;
   vapidPublicKey: string | null;
 }

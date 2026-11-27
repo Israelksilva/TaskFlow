@@ -11,6 +11,7 @@ import { logger } from "./lib/logger";
 import { errorHandler, notFoundHandler } from "./middlewares/error-handler";
 import { adminRoutes } from "./modules/admin/admin.routes";
 import { authRoutes } from "./modules/auth/auth.routes";
+import { paymentWebhookRoutes } from "./modules/billing/billing.routes";
 import { supportRoutes } from "./modules/support/support.routes";
 import { notificationRoutes } from "./modules/notifications/notification.routes";
 import { publicRoutes } from "./modules/public/public.routes";
@@ -75,7 +76,7 @@ export function createApp() {
       dbLatencyMs: Date.now() - started,
       jobs: await queueStats(),
       realtimeConnections: connectedCount(),
-      integrations,
+      integrations: integrations.toJSON(),
     });
   });
 
@@ -89,6 +90,7 @@ export function createApp() {
   app.use("/v1/tempo", timerRoutes);
   app.use("/v1/suporte", supportRoutes);
   app.use("/v1/admin", adminRoutes);
+  app.use("/v1/pagamentos", paymentWebhookRoutes);
 
   // Rotas originais (compatibilidade com o cliente anterior)
   app.use("/auth", authRoutes);

@@ -13,7 +13,7 @@ export const publicRoutes = Router();
 /** Configuração pública: o front-end só mostra recursos cujas integrações estão de fato ativas. */
 publicRoutes.get("/config", (_req, res) => {
   const config: PublicConfig = {
-    integrations,
+    integrations: integrations.toJSON(),
     googleClientId: env.GOOGLE_CLIENT_ID ?? null,
     vapidPublicKey: env.VAPID_PUBLIC_KEY ?? null,
   };

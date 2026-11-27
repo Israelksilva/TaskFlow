@@ -209,7 +209,7 @@ export const adminService = {
       failedJobs24h: failed.rows.map((r) => ({ type: r.type, count: r.count, lastError: r.last_error })),
       deliveries24h: Object.fromEntries(deliveries.rows.map((r) => [r.key, r.count])),
       realtimeConnections: connectedCount(),
-      integrations,
+      integrations: integrations.toJSON(),
       uptimeSeconds: Math.round(process.uptime()),
     };
   },

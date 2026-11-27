@@ -36,6 +36,8 @@ import { activityRepository } from "../activity/activity.repository";
 import { commentService } from "../comments/comment.service";
 import { dashboardService } from "../dashboard/dashboard.service";
 import { automationService } from "../automations/automation.service";
+import { attachmentRoutes } from "../attachments/attachment.routes";
+import { billingRoutes } from "../billing/billing.routes";
 import { columnService } from "../projects/column.service";
 import { projectService, type ProjectContext } from "../projects/project.service";
 import { reportService } from "../reports/report.service";
@@ -277,3 +279,5 @@ w.delete("/automacoes/:id", authorize("automations.manage"), async (req, res) =>
 
 // ---- tarefas
 w.use("/tarefas", taskRoutes);
+w.use("/assinatura", billingRoutes);
+w.use("/arquivos", attachmentRoutes);

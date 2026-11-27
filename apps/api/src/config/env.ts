@@ -122,7 +122,24 @@ export const isTest = env.NODE_ENV === "test";
 
 /** Quais integrações externas estão de fato configuradas (exposto em /health e /v1/config). */
 export const integrations = {
-  email: Boolean(env.RESEND_API_KEY),
-  push: Boolean(env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY),
-  google: Boolean(env.GOOGLE_CLIENT_ID),
-} as const;
+  get email() {
+    return Boolean(env.RESEND_API_KEY);
+  },
+  get push() {
+    return Boolean(env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY);
+  },
+  get google() {
+    return Boolean(env.GOOGLE_CLIENT_ID);
+  },
+  /** Mercado Pago (somente credenciais de teste são aceitas nesta versão). */
+  get payments() {
+    return Boolean(env.MP_ACCESS_TOKEN);
+  },
+  /** Cloudflare R2 (bucket privado). */
+  get storage() {
+    return Boolean(env.R2_ACCOUNT_ID && env.R2_ACCESS_KEY_ID && env.R2_SECRET_ACCESS_KEY && env.R2_BUCKET);
+  },
+  toJSON() {
+    return { email: this.email, push: this.push, google: this.google, payments: this.payments, storage: this.storage };
+  },
+};

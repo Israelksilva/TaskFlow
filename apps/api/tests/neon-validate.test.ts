@@ -7,8 +7,8 @@ import { migrate, MIGRATIONS_DIR } from "../src/db/migrate";
 import { compare, snapshot } from "../src/scripts/neon-validate-lib";
 
 /**
- * Simula a produção atual (só a migração 001, com dados) e valida que 002–005 preservam usuários, tarefas e
- * vínculos — o mesmo procedimento que o script roda na branch de teste do Neon.
+ * Simula a produção atual (só a migração 001, com dados) e valida que 002 em diante preservam usuários, tarefas e
+ * vínculos (002 em diante) — o mesmo procedimento que o script roda na branch de teste do Neon.
  */
 const only001 = mkdtempSync(path.join(tmpdir(), "andamo-mig-"));
 cpSync(path.join(MIGRATIONS_DIR, "001_create_users_and_tasks.sql"), path.join(only001, "001_create_users_and_tasks.sql"));
@@ -34,14 +34,14 @@ async function legacyDatabase() {
 }
 
 describe("validação de migrações (simulação da branch do Neon)", () => {
-  it("002–005 preservam usuários, tarefas e vínculos", async () => {
+  it("002–006 preservam usuários, tarefas e vínculos", async () => {
     const db = await legacyDatabase();
     const before = await snapshot(db, "ep-teste");
     expect(before.migrations).toEqual(["001_create_users_and_tasks.sql"]);
     expect(Object.keys(before.tasks)).toHaveLength(5);
 
     const applied = await migrate(db);
-    expect(applied).toEqual(["002_saas_foundation.sql", "003_columns_and_time.sql", "004_automations.sql", "005_admin_support.sql"]);
+    expect(applied).toEqual(["002_saas_foundation.sql", "003_columns_and_time.sql", "004_automations.sql", "005_admin_support.sql", "006_billing_and_files.sql"]);
     const after = await snapshot(db, "ep-teste");
     const result = await compare(db, before, after);
     expect(result.problems).toEqual([]);

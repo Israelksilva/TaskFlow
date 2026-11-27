@@ -1,4 +1,5 @@
 import type { Recurrence, TaskPriority, TaskStatus } from "@andamo/shared";
+import { scheduleObjectDeletion } from "../attachments/attachment.service";
 import { db as defaultDb, type Queryable } from "../../db";
 
 export interface TaskRow {
@@ -219,6 +220,13 @@ export const taskRepository = {
   },
 
   async delete(id: string, db: Queryable = defaultDb): Promise<void> {
+    // Arquivos da tarefa (e subtarefas) saem do R2 pela fila; os registros somem em cascata.
+    const { rows } = await db.query<{ storage_key: string }>(
+      `WITH RECURSIVE tree AS (SELECT id FROM tasks WHERE id = $1 UNION ALL SELECT t.id FROM tasks t JOIN tree ON t.parent_id = tree.id)
+       SELECT storage_key FROM attachments WHERE task_id IN (SELECT id FROM tree)`,
+      [id],
+    );
+    await scheduleObjectDeletion(rows.map((r) => r.storage_key), db);
     await db.query("DELETE FROM tasks WHERE id = $1", [id]);
   },
 };

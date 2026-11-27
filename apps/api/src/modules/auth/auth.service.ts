@@ -1,4 +1,5 @@
 import type { AuthResponse, LoginInput, LoginResponse, RegisterInput, UpdateProfileInput, User } from "@andamo/shared";
+import { scheduleObjectDeletion } from "../attachments/attachment.service";
 import { env } from "../../config/env";
 import { db, type Queryable } from "../../db";
 import { decrypt, encrypt, randomToken, sha256 } from "../../lib/crypto";
@@ -311,6 +312,11 @@ export const authService = {
       );
     }
     await db.transaction(async (tx) => {
+      const { rows: files } = await tx.query<{ storage_key: string }>(
+        `SELECT a.storage_key FROM attachments a JOIN workspaces w ON w.id = a.workspace_id WHERE w.owner_id = $1`,
+        [userId],
+      );
+      await scheduleObjectDeletion(files.map((f) => f.storage_key), tx);
       await tx.query(`DELETE FROM workspaces WHERE owner_id = $1`, [userId]);
       await audit({ actorId: null, action: "auth.account_deleted", target: userId, ip: client.ip }, tx);
       await tx.query(`DELETE FROM users WHERE id = $1`, [userId]);
