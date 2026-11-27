@@ -230,7 +230,8 @@ usuários, tarefas e vínculos antes × depois. Simulação local (001 + dados �
   das tarefas (ordem do quadro preservada).
 - App ligado à cópia (`dev:neon-teste`): cadastro, login, colunas, listagem e criação de tarefa OK (conta de
   validação criada só na branch de teste).
-- **Pendente:** login do responsável com a própria conta e conferência visual do quadro com as tarefas antigas.
+- Validação manual (27/11/2026): o responsável entrou com a própria conta na app ligada à cópia e confirmou que as
+  tarefas antigas aparecem nas colunas e na ordem esperadas. **Validação das migrações concluída.**
 - Registros (só ids e hashes): `apps/api/.validacao-neon/` (fora do git).
 Produção continua sem as migrações: aplicar só com autorização explícita, com backup/branch da produção antes.
 
