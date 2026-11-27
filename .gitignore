@@ -27,6 +27,7 @@ dist-ssr
 .env
 .env.*
 !.env.example
+!.env.*.example
 
 # Database (SQLite local)
 *.db
@@ -42,3 +43,6 @@ coverage
 /test-results/
 /playwright-report/
 /blob-report/
+
+# Registros da validação de migrações no Neon (só ids e hashes)
+.validacao-neon/

@@ -42,3 +42,17 @@ services:
         sync: false
       - key: CONTACT_EMAIL
         sync: false
+      # Mercado Pago — somente credenciais de teste nesta versão.
+      - key: MP_ACCESS_TOKEN
+        sync: false
+      - key: MP_WEBHOOK_SECRET
+        sync: false
+      # Cloudflare R2 — bucket privado para documentos e anexos.
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false

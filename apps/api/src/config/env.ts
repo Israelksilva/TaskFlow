@@ -62,6 +62,17 @@ const envSchema = z
 
     // ---- Formulário de contato da landing page (destino das mensagens).
     CONTACT_EMAIL: optional,
+
+    // ---- Mercado Pago (assinaturas) — SOMENTE credenciais de teste nesta versão. Ver docs/CREDENCIAIS.md.
+    MP_ACCESS_TOKEN: optional,
+    /** Assinatura secreta dos webhooks (Suas integrações → Webhooks). */
+    MP_WEBHOOK_SECRET: optional,
+
+    // ---- Cloudflare R2 (documentos e anexos, bucket privado; acesso só por URL assinada de curta duração).
+    R2_ACCOUNT_ID: optional,
+    R2_ACCESS_KEY_ID: optional,
+    R2_SECRET_ACCESS_KEY: optional,
+    R2_BUCKET: optional,
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === "production" && env.JWT_SECRET.startsWith("troque-este-segredo")) {

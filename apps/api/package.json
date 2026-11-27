@@ -14,7 +14,11 @@
     "db:migrate": "tsx --env-file=.env src/db/migrate-cli.ts",
     "db:migrate:prod": "node --env-file-if-exists=.env dist/migrate.js",
     "db:seed": "tsx --env-file=.env src/db/seed.ts",
-    "admin:grant": "tsx --env-file=.env src/scripts/grant-admin.ts"
+    "admin:grant": "tsx --env-file=.env src/scripts/grant-admin.ts",
+    "neon:verificar": "tsx --env-file=.env.neon-teste src/scripts/neon-validate.ts verificar",
+    "neon:estado": "tsx --env-file=.env.neon-teste src/scripts/neon-validate.ts estado",
+    "neon:migrar": "tsx --env-file=.env.neon-teste src/scripts/neon-validate.ts migrar",
+    "dev:neon-teste": "tsx --env-file=.env.neon-teste src/scripts/serve-neon-teste.ts"
   },
   "dependencies": {
     "@andamo/shared": "*",

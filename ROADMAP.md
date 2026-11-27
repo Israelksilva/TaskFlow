@@ -203,12 +203,28 @@ migração), 17 shared, 16 web (componentes, XSS do Markdown, força da senha). 
 indisponível nesta máquina; o CI constrói a imagem), CI com lint, typecheck, testes, build, smoke test do bundle
 e build Docker. PENDENTE: deploy (aguarda autorização), Sentry, ambiente de homologação.
 
+## Integrações desta versão — situação
+| Integração | Código | Teste real |
+|---|---|---|
+| Resend (e-mail) | pronto (fila, retry, deduplicação) | **pendente** — falta `RESEND_API_KEY` e domínio verificado |
+| Web Push (VAPID) | pronto | **pendente** — faltam `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` |
+| Google OAuth | pronto (ID token validado na API) | **pendente** — falta `GOOGLE_CLIENT_ID` |
+| Mercado Pago (assinaturas, só teste) | em desenvolvimento | **pendente** — faltam `MP_ACCESS_TOKEN` (usuário de teste) e `MP_WEBHOOK_SECRET` |
+| Cloudflare R2 (arquivos privados) | em desenvolvimento | **pendente** — faltam `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` |
+Onde gerar cada credencial: `docs/CREDENCIAIS.md`.
+
+## Validação das migrações no Neon
+Ferramenta pronta (`npm run neon:verificar|neon:estado|neon:migrar`, `dev:neon-teste`) e guia em
+`docs/VALIDACAO-NEON.md`. Recusa o endpoint de produção, exige SSL e confirmação do endpoint de teste; compara
+usuários, tarefas e vínculos antes × depois. Simulação local (001 + dados → 002..005) aprovada em teste automatizado.
+**Pendente:** execução na branch de teste do Neon (depende da criação da branch pelo responsável).
+
 ## Próximos passos sugeridos (próxima sessão)
 1. Revisar e autorizar: `git push` da branch + deploy (as migrações 002 a 005 rodam no Neon no start do
    Render — **fazer backup/branch do Neon antes**).
 2. Configurar credenciais: Resend (e-mail), VAPID (push), Google OAuth.
 4. E2E com Playwright (fluxos: cadastro, quadro, cronômetro, automação).
-5. Escolher provedor de pagamentos (modo teste) e storage de arquivos (R15, R22).
+5. Mercado Pago (modo teste) e Cloudflare R2 (R22, R15) — decididos em 26/11/2026, em implementação.
 
 Decisão registrada em 26/11/2026: como ainda não há pagamento, o plano Free inclui controle de tempo, relatórios
 e 3 automações (`packages/shared/src/plans.ts`). Revisar ao ativar a cobrança.
