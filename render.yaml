@@ -42,6 +42,9 @@ services:
         sync: false
       - key: CONTACT_EMAIL
         sync: false
+      # Endereço público da API (retorno do checkout).
+      - key: PUBLIC_API_URL
+        sync: false
       # Mercado Pago — somente credenciais de teste nesta versão.
       - key: MP_ACCESS_TOKEN
         sync: false

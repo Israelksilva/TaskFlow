@@ -12,6 +12,7 @@ import { api, auth, createTeamWorkspace, createUser, resetDatabase, runPendingJo
 const SECRET = "segredo-webhook-de-teste";
 let preapprovals: Record<string, Record<string, unknown>>;
 let usersMeTags: string[];
+let lastBackUrl: string | undefined;
 const realFetch = globalThis.fetch;
 
 function mockMercadoPago() {
@@ -23,6 +24,7 @@ function mockMercadoPago() {
     if (url.endsWith("/users/me")) return json({ id: 1, tags: usersMeTags });
     if (url.endsWith("/preapproval") && method === "POST") {
       const body = JSON.parse(String(init?.body));
+      lastBackUrl = body.back_url;
       const id = `pre_${Object.keys(preapprovals).length + 1}`;
       preapprovals[id] = { id, status: "pending", external_reference: body.external_reference, payer_email: body.payer_email, auto_recurring: body.auto_recurring, init_point: `https://www.mercadopago.com.br/subscriptions/checkout?preapproval_id=${id}` };
       return json(preapprovals[id], 201);
@@ -57,6 +59,7 @@ beforeEach(async () => {
   usersMeTags = ["test_user"];
   env.MP_ACCESS_TOKEN = "APP_USR-token-de-usuario-de-teste";
   env.MP_WEBHOOK_SECRET = SECRET;
+  env.PUBLIC_API_URL = "https://api-teste.example.com";
   resetTestCheck();
   mockMercadoPago();
 });
@@ -64,9 +67,33 @@ afterEach(() => {
   vi.restoreAllMocks();
   env.MP_ACCESS_TOKEN = undefined;
   env.MP_WEBHOOK_SECRET = undefined;
+  env.PUBLIC_API_URL = undefined;
 });
 
 describe("assinaturas (Mercado Pago, modo teste)", () => {
+  it("sem endereço HTTPS público: checkout recusado antes de falar com o Mercado Pago", async () => {
+    env.PUBLIC_API_URL = undefined;
+    const owner = await createUser();
+    const ws = await createTeamWorkspace(owner.token);
+    const res = await api().post(`/v1/workspaces/${ws.id}/assinatura/checkout`).set(auth(owner.token)).send({ plan: "pro", payerEmail: "c@testuser.com" });
+    expect(res.status).toBe(503);
+    expect(res.body.error.code).toBe("PUBLIC_API_URL_REQUIRED");
+    expect(Object.keys(preapprovals)).toHaveLength(0);
+    env.PUBLIC_API_URL = "http://inseguro.example.com";
+    expect((await api().post(`/v1/workspaces/${ws.id}/assinatura/checkout`).set(auth(owner.token)).send({ plan: "pro", payerEmail: "c@testuser.com" })).status).toBe(503);
+  });
+
+  it("página de retorno: GET público, só reconduz ao app, sem alterar plano", async () => {
+    const owner = await createUser();
+    const ws = await createTeamWorkspace(owner.token);
+    const res = await api().get(`/v1/pagamentos/retorno/${ws.id}?preapproval_id=pre_x&status=authorized`).expect(200);
+    expect(res.headers["content-type"]).toMatch(/text\/html/);
+    expect(res.text).toContain(`/#/app/w/${ws.id}/planos`);
+    expect(res.headers["content-security-policy"]).toContain("default-src 'none'");
+    expect(await planOf(ws.id)).toBe("free");
+    await api().get(`/v1/pagamentos/retorno/nao-e-uuid`).expect(404);
+  });
+
   it("sem credencial: indisponível (503), sem simular", async () => {
     env.MP_ACCESS_TOKEN = undefined;
     const owner = await createUser();
@@ -94,6 +121,8 @@ describe("assinaturas (Mercado Pago, modo teste)", () => {
     const res = await api().post(`/v1/workspaces/${ws.id}/assinatura/checkout`).set(auth(owner.token)).send({ plan: "pro", payerEmail: "Comprador@TestUser.com" }).expect(201);
     expect(res.body.checkoutUrl).toContain("mercadopago.com.br");
     expect(res.body.subscription).toMatchObject({ plan: "pro", status: "pending", amountCents: 2990, testMode: true, payerEmail: "comprador@testuser.com" });
+    // back_url: HTTPS público, sem "#", apontando para a página de retorno da API.
+    expect(lastBackUrl).toBe(`https://api-teste.example.com/v1/pagamentos/retorno/${ws.id}`);
     expect(preapprovals.pre_1.auto_recurring).toMatchObject({ transaction_amount: 29.9, currency_id: "BRL", frequency_type: "months" });
 
     // Assinatura inválida é recusada e nada muda.

@@ -40,6 +40,11 @@ const envSchema = z
       ),
     /** URL pública do front-end (links em e-mails e notificações push). */
     APP_URL: z.string().url().default("http://localhost:8080"),
+    /**
+     * Endereço HTTPS público desta API (ex.: https://andamo-api.onrender.com). Usado em URLs que serviços externos
+     * abrem, como o retorno do checkout do Mercado Pago. Em teste local, o túnel do ngrok é detectado sozinho.
+     */
+    PUBLIC_API_URL: z.string().url().optional().or(z.literal("").transform(() => undefined)),
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
       .default("info"),

@@ -3,7 +3,7 @@ import { env, integrations } from "../../config/env";
 import { db } from "../../db";
 import { registerJob, registerSchedule } from "../../jobs/worker";
 import { logger } from "../../lib/logger";
-import { mercadoPago, type MpPreapproval } from "../../lib/mercadopago";
+import { mercadoPago, PaymentsUnavailableError, type MpPreapproval } from "../../lib/mercadopago";
 import { toISO } from "../../shared/dates";
 import { BadRequestError, ConflictError, NotFoundError } from "../../shared/errors";
 import { audit } from "../audit/audit";
@@ -80,6 +80,21 @@ async function applyProviderState(sub: SubRow, mp: MpPreapproval): Promise<SubRo
   return updated;
 }
 
+/**
+ * Página de retorno do checkout: precisa ser HTTPS público (o Mercado Pago recusa localhost e URLs com "#").
+ * Ela só reconduz o comprador ao app; quem ativa o plano é a confirmação do Mercado Pago (webhook/consulta).
+ */
+export function returnUrl(workspaceId: string): string {
+  const base = env.PUBLIC_API_URL?.replace(/\/$/, "");
+  if (!base || !base.startsWith("https://")) {
+    throw new PaymentsUnavailableError(
+      "PUBLIC_API_URL_REQUIRED",
+      "Defina PUBLIC_API_URL com o endereço HTTPS público da API (no teste local, abra o túnel do ngrok antes de iniciar a API).",
+    );
+  }
+  return `${base}/v1/pagamentos/retorno/${workspaceId}`;
+}
+
 export const billingService = {
   async info(workspaceId: string): Promise<BillingInfo> {
     const sub = await latest(workspaceId);
@@ -97,6 +112,7 @@ export const billingService = {
       if (current.provider_id) await mercadoPago.cancelPreapproval(current.provider_id).catch(() => undefined);
       await db.query(`UPDATE subscriptions SET status = 'cancelled', cancelled_at = now(), ends_at = now(), updated_at = now() WHERE id = $1`, [current.id]);
     }
+    const backUrl = returnUrl(ctx.workspaceId);
     const plan = PLANS[input.plan];
     const { rows } = await db.query<SubRow>(
       `INSERT INTO subscriptions (workspace_id, plan, amount_cents, payer_email, created_by) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
@@ -109,7 +125,7 @@ export const billingService = {
         amountCents: plan.priceCents,
         payerEmail: input.payerEmail,
         externalReference: sub.id,
-        backUrl: `${env.APP_URL.replace(/\/$/, "")}/#/app/w/${ctx.workspaceId}/planos`,
+        backUrl,
       });
       await db.query(`UPDATE subscriptions SET provider_id = $2, updated_at = now() WHERE id = $1`, [sub.id, mp.id]);
       await audit({ actorId: ctx.userId, workspaceId: ctx.workspaceId, action: "billing.checkout_started", target: sub.id, ip: ctx.ip, data: { plan: input.plan, testMode: true } });
