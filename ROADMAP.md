@@ -269,3 +269,8 @@ e 3 automações (`packages/shared/src/plans.ts`). Revisar ao ativar a cobrança
   de produção após cópia de recuperação local verificada e ensaio sobre os dados reais.
 - Mercado Pago **desligado em produção** (`PAYMENTS_ENABLED=false`, botão de assinar oculto). PENDENTE: revisar o
   checkout antes de ligar.
+- Verificações pós-deploy (commit `c7c3685`): `/health` e `/health/ready` ok; banco de produção com 3 usuários,
+  15 tarefas, 3 workspaces, 3 projetos e 9 colunas, dados e vínculos idênticos à cópia pré-migração; bundle sem
+  credenciais de teste nem URL do ngrok; túnel do ngrok encerrado.
+- **Validação manual no site público (27/11/2026, pelo usuário):** login com conta real ok; quadro com as tarefas
+  existentes nas colunas e na ordem esperadas.
