@@ -28,7 +28,7 @@ export interface MpPreapproval {
 }
 
 async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
-  if (!integrations.payments) throw new PaymentsUnavailableError("PAYMENTS_NOT_CONFIGURED", "Pagamentos ainda não configurados (MP_ACCESS_TOKEN).");
+  if (!integrations.payments) throw new PaymentsUnavailableError("PAYMENTS_NOT_CONFIGURED", "Pagamentos desativados neste ambiente (PAYMENTS_ENABLED/MP_ACCESS_TOKEN).");
   const res = await fetch(`${BASE}${path}`, {
     method,
     headers: {
@@ -60,7 +60,7 @@ let testCheck: { token: string; ok: boolean; at: number } | null = null;
 /** Garante que a credencial é de teste. Resultado em cache por 10 minutos. */
 export async function assertTestCredentials(): Promise<void> {
   const token = env.MP_ACCESS_TOKEN;
-  if (!token) throw new PaymentsUnavailableError("PAYMENTS_NOT_CONFIGURED", "Pagamentos ainda não configurados (MP_ACCESS_TOKEN).");
+  if (!token || !integrations.payments) throw new PaymentsUnavailableError("PAYMENTS_NOT_CONFIGURED", "Pagamentos desativados neste ambiente (PAYMENTS_ENABLED/MP_ACCESS_TOKEN).");
   if (testCheck && testCheck.token === token && Date.now() - testCheck.at < 10 * 60_000) {
     if (!testCheck.ok) throw notTest();
     return;

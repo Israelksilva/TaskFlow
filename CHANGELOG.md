@@ -2,7 +2,7 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
-## [2.0.0] — não publicado (branch `saas/evolucao`)
+## [2.0.0] — publicado em 2026-11-27
 
 ### Adicionado
 - Multi-tenant: workspaces, membros, convites por e-mail, equipes, etiquetas, transferência de propriedade,
@@ -27,6 +27,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Painel administrativo da plataforma (métricas, usuários, planos, avisos, contatos, auditoria, status) com 2FA obrigatório.
 - Central de suporte com chamados, conversa com a equipe e avisos globais no app.
 - Assinaturas pelo Mercado Pago em **modo de teste** (checkout, webhook assinado, cancelamento no fim do ciclo).
+  Trava `PAYMENTS_ENABLED` (padrão `false`): em produção o checkout fica desligado e o botão de assinar oculto.
 - Documentos e anexos em bucket privado do Cloudflare R2 (URLs assinadas de curta duração).
 - Testes de ponta a ponta com Playwright (`npm run e2e`) e validação de migrações no Neon (`neon:*`).
 

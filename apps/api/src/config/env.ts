@@ -69,6 +69,11 @@ const envSchema = z
     CONTACT_EMAIL: optional,
 
     // ---- Mercado Pago (assinaturas) — SOMENTE credenciais de teste nesta versão. Ver docs/CREDENCIAIS.md.
+    /**
+     * Trava geral dos pagamentos: mesmo com MP_ACCESS_TOKEN, o checkout só liga com PAYMENTS_ENABLED=true.
+     * Em produção fica desligada até o checkout ser revisado.
+     */
+    PAYMENTS_ENABLED: bool(false),
     MP_ACCESS_TOKEN: optional,
     /** Assinatura secreta dos webhooks (Suas integrações → Webhooks). */
     MP_WEBHOOK_SECRET: optional,
@@ -138,7 +143,7 @@ export const integrations = {
   },
   /** Mercado Pago (somente credenciais de teste são aceitas nesta versão). */
   get payments() {
-    return Boolean(env.MP_ACCESS_TOKEN);
+    return env.PAYMENTS_ENABLED && Boolean(env.MP_ACCESS_TOKEN);
   },
   /** Cloudflare R2 (bucket privado). */
   get storage() {

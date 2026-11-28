@@ -263,3 +263,9 @@ credencial) e uso de armazenamento respondendo. **A branch de teste está com 00
 
 Decisão registrada em 26/11/2026: como ainda não há pagamento, o plano Free inclui controle de tempo, relatórios
 e 3 automações (`packages/shared/src/plans.ts`). Revisar ao ativar a cobrança.
+
+## Publicação 2026-11-27
+- `saas/evolucao` publicada na `main` (API no Render, site no GitHub Pages); migrações 002–006 aplicadas no Neon
+  de produção após cópia de recuperação local verificada e ensaio sobre os dados reais.
+- Mercado Pago **desligado em produção** (`PAYMENTS_ENABLED=false`, botão de assinar oculto). PENDENTE: revisar o
+  checkout antes de ligar.

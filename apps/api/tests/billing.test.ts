@@ -57,6 +57,7 @@ beforeEach(async () => {
   await db.query("DELETE FROM payment_events");
   preapprovals = {};
   usersMeTags = ["test_user"];
+  env.PAYMENTS_ENABLED = true;
   env.MP_ACCESS_TOKEN = "APP_USR-token-de-usuario-de-teste";
   env.MP_WEBHOOK_SECRET = SECRET;
   env.PUBLIC_API_URL = "https://api-teste.example.com";
@@ -65,6 +66,7 @@ beforeEach(async () => {
 });
 afterEach(() => {
   vi.restoreAllMocks();
+  env.PAYMENTS_ENABLED = false;
   env.MP_ACCESS_TOKEN = undefined;
   env.MP_WEBHOOK_SECRET = undefined;
   env.PUBLIC_API_URL = undefined;
@@ -92,6 +94,17 @@ describe("assinaturas (Mercado Pago, modo teste)", () => {
     expect(res.headers["content-security-policy"]).toContain("default-src 'none'");
     expect(await planOf(ws.id)).toBe("free");
     await api().get(`/v1/pagamentos/retorno/nao-e-uuid`).expect(404);
+  });
+
+  it("trava desligada (produção): mesmo com credencial, checkout indisponível e botão oculto", async () => {
+    env.PAYMENTS_ENABLED = false;
+    const owner = await createUser();
+    const ws = await createTeamWorkspace(owner.token);
+    expect((await api().get(`/v1/workspaces/${ws.id}/assinatura`).set(auth(owner.token))).body.available).toBe(false);
+    const res = await api().post(`/v1/workspaces/${ws.id}/assinatura/checkout`).set(auth(owner.token)).send({ plan: "pro", payerEmail: "comprador@testuser.com" });
+    expect(res.status).toBe(503);
+    expect(res.body.error.code).toBe("PAYMENTS_NOT_CONFIGURED");
+    expect(Object.keys(preapprovals)).toHaveLength(0);
   });
 
   it("sem credencial: indisponível (503), sem simular", async () => {

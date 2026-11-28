@@ -17,6 +17,8 @@ if (prod === endpoint) fail(`O endpoint ${endpoint} é o de PRODUÇÃO. Use a br
 
 process.env.DATABASE_URL = url;
 process.env.NODE_ENV = "development";
+// Teste local com credenciais de teste do Mercado Pago: liga a trava de pagamentos só aqui.
+process.env.PAYMENTS_ENABLED ??= "true";
 // Segredo efêmero: sessões desta execução valem só enquanto ela roda.
 process.env.JWT_SECRET ??= randomBytes(32).toString("hex");
 // Sem credenciais reais de envio: nada sai por e-mail/push durante o teste.

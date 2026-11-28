@@ -45,7 +45,9 @@ services:
       # Endereço público da API (retorno do checkout).
       - key: PUBLIC_API_URL
         sync: false
-      # Mercado Pago — somente credenciais de teste nesta versão.
+      # Mercado Pago — DESLIGADO em produção (botão de assinar oculto) até o checkout ser revisado.
+      - key: PAYMENTS_ENABLED
+        value: "false"
       - key: MP_ACCESS_TOKEN
         sync: false
       - key: MP_WEBHOOK_SECRET

@@ -88,9 +88,11 @@ export function SubscriptionSection({ ws, info }: { ws: string; info: BillingInf
     <section className="space-y-3 rounded-xl border bg-card p-5 shadow-card">
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="font-display text-lg font-bold">Assinatura</h2>
-        <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-semibold text-warning">
-          <FlaskConical className="h-3.5 w-3.5" aria-hidden /> Modo de teste — sem cobrança real
-        </span>
+        {info.available && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-semibold text-warning">
+            <FlaskConical className="h-3.5 w-3.5" aria-hidden /> Modo de teste — sem cobrança real
+          </span>
+        )}
       </div>
       {!info.available ? (
         <p className="text-sm text-muted-foreground">O pagamento online ainda não foi configurado neste ambiente. Fale com a equipe do Andamo para mudar de plano.</p>

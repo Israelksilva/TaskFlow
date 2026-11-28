@@ -9,6 +9,7 @@ import { randomBytes } from "node:crypto";
 process.env.DATABASE_URL = "pglite://memory";
 process.env.JWT_SECRET = randomBytes(32).toString("hex");
 process.env.LOG_LEVEL = "silent";
+process.env.PAYMENTS_ENABLED = "true"; // só para esta verificação local
 
 const token = process.env.MP_ACCESS_TOKEN ?? "";
 const secret = process.env.MP_WEBHOOK_SECRET ?? "";
