@@ -13,6 +13,11 @@ const SECRET = "segredo-webhook-de-teste";
 let preapprovals: Record<string, Record<string, unknown>>;
 let usersMeTags: string[];
 let lastBackUrl: string | undefined;
+/** Falhas simuladas do provedor: quantas próximas chamadas GET/PUT em /preapproval/:id respondem 500. */
+let failGet = 0;
+let failPut = 0;
+/** Ajuste após o PUT (ex.: o provedor apagar next_payment_date ao cancelar). */
+let afterPut: ((p: Record<string, unknown>) => void) | undefined;
 const realFetch = globalThis.fetch;
 
 function mockMercadoPago() {
@@ -31,7 +36,12 @@ function mockMercadoPago() {
     }
     const m = url.match(/\/preapproval\/([^/?]+)/);
     if (m && preapprovals[m[1]]) {
-      if (method === "PUT") Object.assign(preapprovals[m[1]], JSON.parse(String(init?.body)));
+      if (method === "GET" && failGet > 0) return failGet--, json({ message: "erro temporário" }, 500);
+      if (method === "PUT" && failPut > 0) return failPut--, json({ message: "erro temporário" }, 500);
+      if (method === "PUT") {
+        Object.assign(preapprovals[m[1]], JSON.parse(String(init?.body)));
+        afterPut?.(preapprovals[m[1]]);
+      }
       return json(preapprovals[m[1]]);
     }
     return json({ message: "not found" }, 404);
@@ -56,6 +66,9 @@ beforeEach(async () => {
   await db.query("DELETE FROM subscriptions");
   await db.query("DELETE FROM payment_events");
   preapprovals = {};
+  failGet = 0;
+  failPut = 0;
+  afterPut = undefined;
   usersMeTags = ["test_user"];
   env.PAYMENTS_ENABLED = true;
   env.MP_ACCESS_TOKEN = "APP_USR-token-de-usuario-de-teste";
@@ -189,5 +202,73 @@ describe("assinaturas (Mercado Pago, modo teste)", () => {
     expect(await planOf(ws.id)).toBe("pro");
     // Com assinatura ativa, novo checkout é bloqueado.
     await api().post(`/v1/workspaces/${ws.id}/assinatura/checkout`).set(auth(owner.token)).send({ plan: "business", payerEmail: "c@testuser.com" }).expect(409);
+  });
+
+  it("checkout anterior que não fecha no provedor: novo checkout recusado (sem duas assinaturas)", async () => {
+    const owner = await createUser();
+    const ws = await createTeamWorkspace(owner.token);
+    const checkout = () => api().post(`/v1/workspaces/${ws.id}/assinatura/checkout`).set(auth(owner.token)).send({ plan: "pro", payerEmail: "c@testuser.com" });
+    await checkout().expect(201);
+    failPut = 1;
+    expect((await checkout().expect(502)).body.error.code).toBe("PAYMENTS_PROVIDER_ERROR");
+    // Nada novo no provedor; o pedido antigo continua pendente aqui e lá.
+    expect(Object.keys(preapprovals)).toEqual(["pre_1"]);
+    expect(preapprovals.pre_1.status).toBe("pending");
+    const subs = await db.query<{ status: string }>(`SELECT status FROM subscriptions WHERE workspace_id = $1`, [ws.id]);
+    expect(subs.rows.map((r) => r.status)).toEqual(["pending"]);
+    // Falha ao consultar o provedor também interrompe.
+    failGet = 1;
+    await checkout().expect(502);
+    expect(Object.keys(preapprovals)).toEqual(["pre_1"]);
+    // Com o provedor de volta, o antigo é cancelado lá antes de abrir o novo.
+    await checkout().expect(201);
+    expect(preapprovals.pre_1.status).toBe("cancelled");
+    expect(Object.keys(preapprovals)).toEqual(["pre_1", "pre_2"]);
+  });
+
+  it("checkout anterior pago no provedor: vale o antigo, não abre outro", async () => {
+    const owner = await createUser();
+    const ws = await createTeamWorkspace(owner.token);
+    const checkout = () => api().post(`/v1/workspaces/${ws.id}/assinatura/checkout`).set(auth(owner.token)).send({ plan: "pro", payerEmail: "c@testuser.com" });
+    await checkout().expect(201);
+    preapprovals.pre_1.status = "authorized";
+    expect((await checkout().expect(409)).body.error.code).toBe("SUBSCRIPTION_ACTIVE");
+    expect(Object.keys(preapprovals)).toEqual(["pre_1"]);
+    expect(preapprovals.pre_1.status).toBe("authorized");
+    expect(await planOf(ws.id)).toBe("pro");
+  });
+
+  it("webhook que falhou é reprocessado no reenvio com o mesmo x-request-id", async () => {
+    const owner = await createUser();
+    const ws = await createTeamWorkspace(owner.token);
+    await api().post(`/v1/workspaces/${ws.id}/assinatura/checkout`).set(auth(owner.token)).send({ plan: "pro", payerEmail: "c@testuser.com" }).expect(201);
+    preapprovals.pre_1.status = "authorized";
+    failGet = 1;
+    await webhook("pre_1", "req-retry").expect(502);
+    expect(await planOf(ws.id)).toBe("free");
+    expect((await webhook("pre_1", "req-retry").expect(200)).body.result).toBe("processed");
+    expect(await planOf(ws.id)).toBe("pro");
+    // Depois de processado, o reenvio volta a ser só duplicado.
+    expect((await webhook("pre_1", "req-retry").expect(200)).body.result).toBe("duplicate");
+    const ev = await db.query<{ status: string }>(`SELECT status FROM payment_events WHERE request_id = 'req-retry'`);
+    expect(ev.rows).toEqual([{ status: "processed" }]);
+  });
+
+  it("cancelamento sem data do provedor mantém o plano até a última data de cobrança salva", async () => {
+    const owner = await createUser();
+    const ws = await createTeamWorkspace(owner.token);
+    await api().post(`/v1/workspaces/${ws.id}/assinatura/checkout`).set(auth(owner.token)).send({ plan: "pro", payerEmail: "c@testuser.com" }).expect(201);
+    const next = new Date(Date.now() + 20 * 86_400_000).toISOString();
+    Object.assign(preapprovals.pre_1, { status: "authorized", next_payment_date: next });
+    await webhook("pre_1", "req-auth").expect(200);
+    afterPut = (p) => {
+      if (p.status === "cancelled") p.next_payment_date = null;
+    };
+    const res = await api().post(`/v1/workspaces/${ws.id}/assinatura/cancelar`).set(auth(owner.token)).expect(200);
+    expect(res.body.subscription.status).toBe("cancelled");
+    expect(Date.parse(res.body.subscription.endsAt)).toBe(Date.parse(next));
+    await db.query(`INSERT INTO jobs (type, payload) VALUES ('billing.expire', '{}')`);
+    await runPendingJobs(10);
+    expect(await planOf(ws.id)).toBe("pro");
   });
 });

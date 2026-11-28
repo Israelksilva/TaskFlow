@@ -2,6 +2,14 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [Não publicado]
+
+### Corrigido
+- Checkout Mercado Pago: novo checkout só abre depois de confirmar que o anterior foi cancelado no provedor
+  (antes, uma falha era ignorada e podia haver duas assinaturas cobrando); se o anterior já foi pago, ele prevalece.
+- Webhook: notificação que falhou é reprocessada no reenvio com o mesmo `x-request-id` (antes ficava como duplicada).
+- Cancelamento: se o provedor não devolver a próxima data de cobrança, o plano vale até a última data salva.
+
 ## [2.0.0] — publicado em 2026-11-27
 
 ### Adicionado

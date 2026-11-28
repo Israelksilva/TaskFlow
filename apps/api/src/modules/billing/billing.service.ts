@@ -5,7 +5,7 @@ import { registerJob, registerSchedule } from "../../jobs/worker";
 import { logger } from "../../lib/logger";
 import { mercadoPago, PaymentsUnavailableError, type MpPreapproval } from "../../lib/mercadopago";
 import { toISO } from "../../shared/dates";
-import { BadRequestError, ConflictError, NotFoundError } from "../../shared/errors";
+import { AppError, BadRequestError, ConflictError, NotFoundError } from "../../shared/errors";
 import { audit } from "../audit/audit";
 import { notificationService } from "../notifications/notification.service";
 
@@ -65,7 +65,8 @@ async function applyProviderState(sub: SubRow, mp: MpPreapproval): Promise<SubRo
   const { rows } = await db.query<SubRow>(
     `UPDATE subscriptions SET status = $2::varchar, provider_id = COALESCE(provider_id, $3::varchar), next_payment_at = $4::timestamptz,
        cancelled_at = CASE WHEN $2::varchar = 'cancelled' THEN COALESCE(cancelled_at, now()) ELSE cancelled_at END,
-       ends_at = CASE WHEN $2::varchar = 'cancelled' THEN COALESCE(ends_at, GREATEST(COALESCE($4::timestamptz, now()), now())) ELSE ends_at END,
+       -- Fim do ciclo pago: data do provedor ou, se ele não informar após o cancelamento, a última salva aqui.
+       ends_at = CASE WHEN $2::varchar = 'cancelled' THEN COALESCE(ends_at, GREATEST(COALESCE($4::timestamptz, next_payment_at, now()), now())) ELSE ends_at END,
        updated_at = now()
      WHERE id = $1 RETURNING *`,
     [sub.id, status, mp.id, next],
@@ -108,8 +109,22 @@ export const billingService = {
       throw new ConflictError("Já existe uma assinatura ativa. Cancele-a antes de trocar de plano.", "SUBSCRIPTION_ACTIVE");
     }
     if (current?.status === "pending") {
-      // Checkout anterior abandonado: encerra antes de abrir outro.
-      if (current.provider_id) await mercadoPago.cancelPreapproval(current.provider_id).catch(() => undefined);
+      // Checkout anterior abandonado: só abre outro depois de confirmar que o link antigo não cobra mais.
+      // Falha ao falar com o Mercado Pago interrompe aqui (sem novo checkout) para não haver duas assinaturas cobrando.
+      if (current.provider_id) {
+        const previous = await mercadoPago.getPreapproval(current.provider_id);
+        if (previous.status === "authorized" || previous.status === "paused") {
+          // O cliente concluiu o checkout antigo: vale ele.
+          await applyProviderState(current, previous);
+          throw new ConflictError("Já existe uma assinatura ativa. Cancele-a antes de trocar de plano.", "SUBSCRIPTION_ACTIVE");
+        }
+        if (previous.status !== "cancelled") {
+          const closed = await mercadoPago.cancelPreapproval(current.provider_id);
+          if (closed.status !== "cancelled") {
+            throw new AppError(502, "PREVIOUS_CHECKOUT_OPEN", "Não foi possível encerrar o checkout anterior no Mercado Pago. Tente novamente.");
+          }
+        }
+      }
       await db.query(`UPDATE subscriptions SET status = 'cancelled', cancelled_at = now(), ends_at = now(), updated_at = now() WHERE id = $1`, [current.id]);
     }
     const backUrl = returnUrl(ctx.workspaceId);
@@ -156,11 +171,16 @@ export const billingService = {
     return this.info(ctx.workspaceId);
   },
 
-  /** Webhook do Mercado Pago (assinatura já validada na rota). Idempotente: sempre relê o estado no MP. */
+  /**
+   * Webhook do Mercado Pago (assinatura já validada na rota). Idempotente: sempre relê o estado no MP.
+   * Notificação já processada/ignorada é "duplicate"; uma que falhou pode ser reprocessada no reenvio.
+   */
   async handleWebhook(input: { requestId: string; type: string; resourceId: string }) {
     const { rows: inserted } = await db.query<{ id: string }>(
       `INSERT INTO payment_events (provider, request_id, type, resource_id) VALUES ('mercadopago', $1, $2, $3)
-       ON CONFLICT (provider, request_id) DO NOTHING RETURNING id`,
+       ON CONFLICT (provider, request_id) DO UPDATE SET status = 'received', detail = NULL
+       WHERE payment_events.status = 'failed'
+       RETURNING id`,
       [input.requestId, input.type, input.resourceId],
     );
     if (!inserted[0]) return "duplicate";
