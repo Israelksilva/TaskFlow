@@ -1,0 +1,21 @@
+{
+  "name": "Andamo — Gestão de projetos e tarefas",
+  "short_name": "Andamo",
+  "description": "Organize seu trabalho. Conecte sua equipe. Faça acontecer.",
+  "lang": "pt-BR",
+  "start_url": "./#/app",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0F0E1A",
+  "theme_color": "#6D5DFC",
+  "categories": ["productivity", "business"],
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon-maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Minhas tarefas", "url": "./#/app" },
+    { "name": "Notificações", "url": "./#/app/notificacoes" }
+  ]
+}
