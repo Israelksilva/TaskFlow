@@ -112,8 +112,9 @@ export const mercadoPago = {
 /**
  * Valida o cabeçalho `x-signature` dos webhooks (ts=...,v1=...).
  * Manifesto oficial: `id:<data.id>;request-id:<x-request-id>;ts:<ts>;` assinado com HMAC-SHA256 (MP_WEBHOOK_SECRET).
+ * A proteção contra repetição fica na idempotência por `x-request-id` (payment_events), não no horário.
  */
-export function verifyWebhookSignature(input: { signature?: string; requestId?: string; dataId?: string }, now = Date.now()): boolean {
+export function verifyWebhookSignature(input: { signature?: string; requestId?: string; dataId?: string }): boolean {
   const secret = env.MP_WEBHOOK_SECRET;
   if (!secret || !input.signature || !input.requestId || !input.dataId) return false;
   const parts = Object.fromEntries(
@@ -125,9 +126,10 @@ export function verifyWebhookSignature(input: { signature?: string; requestId?: 
   const ts = parts.ts;
   const v1 = parts.v1;
   if (!ts || !v1 || !/^[0-9a-f]{64}$/i.test(v1)) return false;
-  // Rejeita notificações muito antigas (replay). ts vem em milissegundos (ou segundos, em versões antigas).
-  const tsMs = ts.length <= 10 ? Number(ts) * 1000 : Number(ts);
-  if (!Number.isFinite(tsMs) || Math.abs(now - tsMs) > 15 * 60_000) return false;
+  // Sem janela de tempo: reenvios legítimos do Mercado Pago podem chegar bem depois do ts original e seriam
+  // recusados para sempre. Repetir uma notificação válida não causa efeito: já processada → "duplicate" (sem
+  // chamar o provedor); com falha → reprocessa relendo o estado no Mercado Pago (fonte da verdade).
+  if (!/^\d{1,16}$/.test(ts)) return false;
   const dataId = /^[a-z0-9]+$/i.test(input.dataId) ? input.dataId.toLowerCase() : input.dataId;
   const manifest = `id:${dataId};request-id:${input.requestId};ts:${ts};`;
   const expected = createHmac("sha256", secret).update(manifest).digest();

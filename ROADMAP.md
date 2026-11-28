@@ -278,6 +278,7 @@ e 3 automações (`packages/shared/src/plans.ts`). Revisar ao ativar a cobrança
 ## Revisão do checkout Mercado Pago (2026-11-27)
 - Corrigidos: cancelamento ignorado do checkout anterior (risco de cobrança dupla), webhook com falha não
   reprocessado e fim de ciclo sem data do provedor; 4 testes novos em `apps/api/tests/billing.test.ts`.
-- PENDENTE antes de ligar `PAYMENTS_ENABLED`: janela de 15 min da assinatura do webhook, `init_point` ×
+- Corrigido depois: janela de 15 min do `ts` do webhook removida (reenvios atrasados eram recusados).
+- PENDENTE antes de ligar `PAYMENTS_ENABLED`: `init_point` ×
   `sandbox_init_point` num teste real, credencial de produção (hoje só teste), `PUBLIC_API_URL`, webhook e
   `MP_WEBHOOK_SECRET` no Render.

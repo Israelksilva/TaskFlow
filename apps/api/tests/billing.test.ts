@@ -271,4 +271,21 @@ describe("assinaturas (Mercado Pago, modo teste)", () => {
     await runPendingJobs(10);
     expect(await planOf(ws.id)).toBe("pro");
   });
+
+  it("webhook com ts antigo (reenvio atrasado) é aceito; repetição não chama o provedor de novo", async () => {
+    const owner = await createUser();
+    const ws = await createTeamWorkspace(owner.token);
+    await api().post(`/v1/workspaces/${ws.id}/assinatura/checkout`).set(auth(owner.token)).send({ plan: "pro", payerEmail: "c@testuser.com" }).expect(201);
+    preapprovals.pre_1.status = "authorized";
+    const old = String(Date.now() - 2 * 86_400_000);
+    // Assinatura antiga, mas com HMAC errado, continua recusada.
+    await webhook("pre_1", "req-old", `ts=${old},v1=${"0".repeat(64)}`).expect(401);
+    await webhook("pre_1", "req-old", `ts=abc,v1=${"0".repeat(64)}`).expect(401);
+    expect((await webhook("pre_1", "req-old", sign("pre_1", "req-old", old)).expect(200)).body.result).toBe("processed");
+    expect(await planOf(ws.id)).toBe("pro");
+    const calls = () => vi.mocked(globalThis.fetch).mock.calls.filter(([u]) => String(u).includes("/preapproval/pre_1")).length;
+    const before = calls();
+    expect((await webhook("pre_1", "req-old", sign("pre_1", "req-old", old)).expect(200)).body.result).toBe("duplicate");
+    expect(calls()).toBe(before);
+  });
 });

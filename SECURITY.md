@@ -46,7 +46,7 @@ retenção automática (jobs 7 dias, logs de entrega 90 dias, sessões revogadas
 ## Pagamentos (Mercado Pago, modo teste)
 - Só credenciais de teste são aceitas (`TEST-` ou conta com a tag `test_user`); outras são recusadas antes de
   qualquer chamada de cobrança.
-- Webhook: assinatura HMAC-SHA256 (`x-signature`) com `MP_WEBHOOK_SECRET`, janela de 15 min contra replay,
+- Webhook: assinatura HMAC-SHA256 (`x-signature`) com `MP_WEBHOOK_SECRET`, sem janela de tempo (reenvios atrasados do provedor são aceitos); repetição neutralizada pela idempotência por `x-request-id` e releitura do estado no Mercado Pago,
   idempotência por `x-request-id`; o estado é sempre relido no provedor e valor/moeda/referência são conferidos.
 - Nenhum dado de cartão passa pelo Andamo (checkout hospedado pelo Mercado Pago).
 

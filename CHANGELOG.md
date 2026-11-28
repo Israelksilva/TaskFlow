@@ -9,6 +9,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
   (antes, uma falha era ignorada e podia haver duas assinaturas cobrando); se o anterior já foi pago, ele prevalece.
 - Webhook: notificação que falhou é reprocessada no reenvio com o mesmo `x-request-id` (antes ficava como duplicada).
 - Cancelamento: se o provedor não devolver a próxima data de cobrança, o plano vale até a última data salva.
+- Webhook: removida a janela de 15 min do `ts`, que recusaria para sempre reenvios atrasados do Mercado Pago;
+  a repetição é neutralizada pela idempotência por `x-request-id`.
 
 ## [2.0.0] — publicado em 2026-11-27
 
